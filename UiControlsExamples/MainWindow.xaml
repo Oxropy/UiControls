@@ -6,7 +6,7 @@
         xmlns:uiControls="clr-namespace:UiControls;assembly=UiControls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <uiControls:DynamicGrid>
+    <uiControls:DynamicGrid Name="DynamicGrid" CellChanged="DynamicGrid_OnCellChanged">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
