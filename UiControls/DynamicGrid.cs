@@ -1,12 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Point = System.Drawing.Point;
 
 namespace UiControls;
 
-public class DynamicGrid : Grid
+public sealed class DynamicGrid : Grid
 {
     private enum RowPosition
     {
@@ -43,6 +42,9 @@ public class DynamicGrid : Grid
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid), new FrameworkPropertyMetadata(typeof(DynamicGrid)));
     }
 
+    public event EventHandler<CellChangedEventArgs>? CellChanged;
+    public Func<UIElement>? GetDefaultCell { get; set; }
+    
     public DynamicGrid()
     {
         MouseRightButtonDown += Grid_OnMouseRightButtonDown;
@@ -152,26 +154,29 @@ public class DynamicGrid : Grid
 
     private void MergeCells(Point topLeft, Point bottomRight, UIElement elementToExpand)
     {
-
         for (int i = Children.Count - 1; i >= 0; i--)
         {
             UIElement element = Children[i];
             if (element == elementToExpand)
                 continue;
+
+            var row = GetRow(element);
+            var column = GetColumn(element);
+            if (row < topLeft.Y || row > bottomRight.Y || column < topLeft.X || column > bottomRight.X) continue;
             
-            if (GetRow(element) >= topLeft.Y 
-                && GetRow(element) <= bottomRight.Y 
-                && GetColumn(element) >= topLeft.X 
-                && GetColumn(element) <= bottomRight.X)
-            {
-                Children.Remove(element);
-            }
+            Children.Remove(element);
+            OnCellChanged(CellsChangeType.Remove, element, row, column);
         }
-        
+
+        var originalRow = GetRow(elementToExpand);
+        var originalColumn = GetColumn(elementToExpand);
+
         SetRow(elementToExpand, topLeft.Y);
         SetColumn(elementToExpand, topLeft.X);
         SetRowSpan(elementToExpand, bottomRight.Y - topLeft.Y + 1);
         SetColumnSpan(elementToExpand, bottomRight.X - topLeft.X + 1);
+        
+        OnCellChanged(CellsChangeType.SizeIncreased, elementToExpand, originalRow, originalColumn);
         
         SetIsSelected(elementToExpand, false);
     }
@@ -182,13 +187,17 @@ public class DynamicGrid : Grid
         {
             return;
         }
-        
+
+        var rowIndex = GetRow(element);
+        var columnIndex = GetColumn(element);
         var rowSpan = GetRowSpan(element);
         var columnSpan = GetColumnSpan(element);
         
         SetRowSpan(element, 1);
         SetColumnSpan(element, 1);
         
+        OnCellChanged(CellsChangeType.SizeDecreased, element, rowIndex, columnIndex);
+
         for (var row = 0; row <= rowSpan; row++)
         {
             for (var column = 0; column <= columnSpan; column++)
@@ -198,7 +207,7 @@ public class DynamicGrid : Grid
                     continue;
                 }
                 
-                AddEmptyCell(GetRow(element) + row, GetColumn(element) + column);
+                AddEmptyCell(rowIndex + row, columnIndex + column);
             }
         }
     }
@@ -211,11 +220,14 @@ public class DynamicGrid : Grid
         }
 
         var row = GetRow(element);
-        var columnSpan = GetColumnSpan(element);
+        var columnIndex = GetColumn(element);
         var rowSpan = GetRowSpan(element);
+        var columnSpan = GetColumnSpan(element);
         var newColumnSpan = columnSpan / 2;
         
         SetColumnSpan(element, newColumnSpan);
+        
+        OnCellChanged(CellsChangeType.SizeDecreased, element, row, columnIndex);
        
         for (var column = 1; column <= columnSpan; column++)
         {
@@ -230,12 +242,15 @@ public class DynamicGrid : Grid
             return;
         }
 
-        var rowSpan = GetRowSpan(element);
+        var rowIndex = GetRow(element);
         var column = GetColumn(element);
-        var newRowSpan = rowSpan / 2;
+        var rowSpan = GetRowSpan(element);
         var columnSpan = GetColumnSpan(element);
+        var newRowSpan = rowSpan / 2;
 
         SetRowSpan(element, newRowSpan);
+        
+        OnCellChanged(CellsChangeType.SizeDecreased, element, rowIndex, column);
        
         for (var row = 1; row <= rowSpan; row++)
         {
@@ -392,16 +407,15 @@ public class DynamicGrid : Grid
 
     private void AddEmptyCell(int row, int column, int rowSpan = 1, int columnSpan = 1)
     {
-        Border newCell = new()
-        {
-            Background = new SolidColorBrush(Colors.Gray)
-        };
+        var cell = GetDefaultCell?.Invoke();
+        if (cell == null) return;
 
-        SetRow(newCell, row);
-        SetRowSpan(newCell, rowSpan);
-        SetColumn(newCell, column);
-        SetColumnSpan(newCell, columnSpan);
-        Children.Add(newCell);
+        SetRow(cell, row);
+        SetRowSpan(cell, rowSpan);
+        SetColumn(cell, column);
+        SetColumnSpan(cell, columnSpan);
+        Children.Add(cell);
+        OnCellChanged(CellsChangeType.Add, cell, row, column);
     }
 
     private static bool IsIntValueGreaterThanZero(object value)
@@ -473,8 +487,11 @@ public class DynamicGrid : Grid
         for (int i = Children.Count - 1; i >= 0; i--)
         {
             UIElement element = Children[i];
-            if (GetRow(element) == rowIndex) 
-                Children.Remove(element);
+            if (GetRow(element) != rowIndex) continue;
+
+            var column = GetColumn(element);
+            Children.Remove(element);
+            OnCellChanged(CellsChangeType.SizeDecreased, element, rowIndex, column);
         }
     }
 
@@ -557,8 +574,11 @@ public class DynamicGrid : Grid
         for (int i = Children.Count - 1; i >= 0; i--)
         {
             UIElement element = Children[i];
-            if (GetColumn(element) == columnIndex) 
-                Children.Remove(element);
+            if (GetColumn(element) != columnIndex) continue;
+
+            var row = GetRow(element);
+            Children.Remove(element);
+            OnCellChanged(CellsChangeType.Remove, element, row, columnIndex);
         }
     }
 
@@ -575,4 +595,20 @@ public class DynamicGrid : Grid
     }
 
     #endregion
+
+    private void OnCellChanged(CellsChangeType changeType, UIElement element, int rowIndex, int columnIndex)
+    {
+        object? dataContext = null;
+        if (element is FrameworkElement frameworkElement)
+        {
+            dataContext = frameworkElement.DataContext;
+        }
+        
+        OnCellChanged(new CellChangedEventArgs(changeType, new Point(rowIndex, columnIndex), dataContext));
+    }
+    
+    private void OnCellChanged(CellChangedEventArgs e)
+    {
+        CellChanged?.Invoke(this, e);
+    }
 }
