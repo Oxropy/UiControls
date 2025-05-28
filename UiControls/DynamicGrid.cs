@@ -34,9 +34,13 @@ public sealed class DynamicGrid : Grid
 
     public static readonly DependencyProperty MaxColumnsProperty = DependencyProperty.Register(
         nameof(MaxColumns), typeof(int), typeof(DynamicGrid), new PropertyMetadata(10), IsIntValueGreaterThanZero);
-    
+
+    public static readonly DependencyProperty ShowGridSplitterProperty = DependencyProperty.Register(
+        nameof(ShowGridSplitter), typeof(bool), typeof(DynamicGrid), new PropertyMetadata(false, ShowGridSplitterPropertyChangedCallback));
+
     public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register(
         "IsSelected", typeof(bool), typeof(DynamicGrid), new PropertyMetadata(false));
+    
     static DynamicGrid()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid), new FrameworkPropertyMetadata(typeof(DynamicGrid)));
@@ -72,6 +76,12 @@ public sealed class DynamicGrid : Grid
     {
         get => (int)GetValue(MaxColumnsProperty);
         set => SetValue(MaxColumnsProperty, value);
+    }
+    
+    public bool ShowGridSplitter
+    {
+        get => (bool)GetValue(ShowGridSplitterProperty);
+        set => SetValue(ShowGridSplitterProperty, value);
     }
 
     public static bool GetIsSelected(UIElement element)
@@ -275,8 +285,16 @@ public sealed class DynamicGrid : Grid
         AddColumnMenuItems(contextMenu, element);
         AddMergeMenuItem(contextMenu, element);
         AddSplitMenuItem(contextMenu, element);
+        AddSplitterMenuItem(contextMenu);
 
         return contextMenu;
+    }
+
+    private void AddSplitterMenuItem(ContextMenu contextMenu)
+    {
+        var gridSplitterItem = new MenuItem { Header = ShowGridSplitter ? "Hide splitter" : "Show splitter" };
+        gridSplitterItem.Click += (_, _) => ShowGridSplitter = !ShowGridSplitter;
+        contextMenu.Items.Add(gridSplitterItem);
     }
 
     private static void AddSelectMenuItem(UIElement element, ContextMenu contextMenu)
@@ -422,6 +440,96 @@ public sealed class DynamicGrid : Grid
     {
         return (int)value > 0;
     }
+    
+    private static void ShowGridSplitterPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not DynamicGrid dynamicGrid)
+        {
+            return;
+        }
+        
+        if ((bool)e.NewValue)
+        {
+            AddGridSplitter(dynamicGrid);
+        }
+        else
+        {
+            RemoveGridSplitter(dynamicGrid);
+        }
+    }
+    
+    private static void AddGridSplitter(DynamicGrid dynamicGrid)
+    {
+        var newRowCount = (dynamicGrid.RowDefinitions.Count * 2) - 1;
+        for (int rowIndex = 1; rowIndex < newRowCount; rowIndex += 2)
+        {
+            var newRow = new RowDefinition { Height = new GridLength(2, GridUnitType.Pixel) };
+            dynamicGrid.RowDefinitions.Insert(rowIndex, newRow);
+        }
+        
+        var newColumnCount = (dynamicGrid.ColumnDefinitions.Count * 2) - 1;
+        for (int columnIndex = 1; columnIndex < newColumnCount; columnIndex += 2)
+        {
+            var newColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Pixel) };
+            dynamicGrid.ColumnDefinitions.Insert(columnIndex, newColumn);
+        }
+
+        for (int i = dynamicGrid.Children.Count - 1; i >= 0; i--)
+        {
+            UIElement element = dynamicGrid.Children[i];
+
+            SetRow(element, GetRow(element) * 2);
+            SetColumn(element, GetColumn(element) * 2);
+        }
+
+        for (int rowIndex = 1; rowIndex < dynamicGrid.RowDefinitions.Count - 1; rowIndex += 2)
+        {
+            var gridSplitter = new GridSplitter
+                { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
+            dynamicGrid.Children.Add(gridSplitter);
+            SetRow(gridSplitter, rowIndex);
+            SetColumnSpan(gridSplitter, dynamicGrid.ColumnDefinitions.Count);
+        }
+        
+        for (int columnIndex = 1; columnIndex < dynamicGrid.ColumnDefinitions.Count - 1; columnIndex += 2)
+        {
+            var gridSplitter = new GridSplitter
+                { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
+            dynamicGrid.Children.Add(gridSplitter);
+            SetColumn(gridSplitter, columnIndex);
+            SetRowSpan(gridSplitter, dynamicGrid.RowDefinitions.Count);
+        }
+    }
+    
+    private static void RemoveGridSplitter(DynamicGrid dynamicGrid)
+    {
+        for (int rowIndex = dynamicGrid.RowDefinitions.Count - 2; rowIndex >= 0; rowIndex -= 2)
+        {
+            dynamicGrid.RowDefinitions.RemoveAt(rowIndex);
+        }
+        
+        for (int columnIndex = dynamicGrid.ColumnDefinitions.Count - 2; columnIndex >= 0; columnIndex -= 2)
+        {
+            dynamicGrid.ColumnDefinitions.RemoveAt(columnIndex);
+        }
+
+        for (int i = dynamicGrid.Children.Count - 1; i >= 0; i--)
+        {
+            if (dynamicGrid.Children[i] is GridSplitter)
+            {
+                dynamicGrid.Children.RemoveAt(i);
+            }
+        }
+        
+        for (int i = dynamicGrid.Children.Count - 1; i >= 0; i--)
+        {
+            UIElement element = dynamicGrid.Children[i];
+
+            SetRow(element, GetRow(element) / 2);
+            SetColumn(element, GetColumn(element) / 2);
+        }
+    }
+
     
     #region Add/Remove Row
 
