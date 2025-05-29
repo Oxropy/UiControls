@@ -36,19 +36,21 @@ public sealed class DynamicGrid : Grid
         nameof(MaxColumns), typeof(int), typeof(DynamicGrid), new PropertyMetadata(10), IsIntValueGreaterThanZero);
 
     public static readonly DependencyProperty ShowGridSplitterProperty = DependencyProperty.Register(
-        nameof(ShowGridSplitter), typeof(bool), typeof(DynamicGrid), new PropertyMetadata(false, ShowGridSplitterPropertyChangedCallback));
+        nameof(ShowGridSplitter), typeof(bool), typeof(DynamicGrid),
+        new PropertyMetadata(false, ShowGridSplitterPropertyChangedCallback));
 
     public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register(
         "IsSelected", typeof(bool), typeof(DynamicGrid), new PropertyMetadata(false));
-    
+
     static DynamicGrid()
     {
-        DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid), new FrameworkPropertyMetadata(typeof(DynamicGrid)));
+        DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid),
+            new FrameworkPropertyMetadata(typeof(DynamicGrid)));
     }
 
     public event EventHandler<CellChangedEventArgs>? CellChanged;
     public Func<UIElement>? GetDefaultCell { get; set; }
-    
+
     public DynamicGrid()
     {
         MouseRightButtonDown += Grid_OnMouseRightButtonDown;
@@ -77,7 +79,7 @@ public sealed class DynamicGrid : Grid
         get => (int)GetValue(MaxColumnsProperty);
         set => SetValue(MaxColumnsProperty, value);
     }
-    
+
     public bool ShowGridSplitter
     {
         get => (bool)GetValue(ShowGridSplitterProperty);
@@ -87,50 +89,50 @@ public sealed class DynamicGrid : Grid
     public static bool GetIsSelected(UIElement element)
     {
         ArgumentNullException.ThrowIfNull(element);
-        
+
         return (bool)element.GetValue(IsSelectedProperty);
     }
-    
+
     public static void SetIsSelected(UIElement element, bool value)
     {
         ArgumentNullException.ThrowIfNull(element);
-        
+
         element.SetValue(IsSelectedProperty, value);
     }
-    
+
     private void AddRowAbove_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             AddRow(element, RowPosition.Above);
     }
-    
+
     private void AddRowBelow_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             AddRow(element, RowPosition.Below);
     }
-    
+
     private void RemoveRow_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             RemoveRow(element);
     }
 
     private void AddColumnToLeft_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             AddColumn(element, ColumnPosition.ToLeft);
     }
-    
+
     private void AddColumnToRight_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             AddColumn(element, ColumnPosition.ToRight);
     }
-    
+
     private void RemoveColumn_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { Tag: UIElement element }) 
+        if (sender is MenuItem { Tag: UIElement element })
             RemoveColumn(element);
     }
 
@@ -173,7 +175,7 @@ public sealed class DynamicGrid : Grid
             var row = GetRow(element);
             var column = GetColumn(element);
             if (row < topLeft.Y || row > bottomRight.Y || column < topLeft.X || column > bottomRight.X) continue;
-            
+
             Children.Remove(element);
             OnCellChanged(CellsChangeType.Remove, element, row, column);
         }
@@ -185,9 +187,9 @@ public sealed class DynamicGrid : Grid
         SetColumn(elementToExpand, topLeft.X);
         SetRowSpan(elementToExpand, bottomRight.Y - topLeft.Y + 1);
         SetColumnSpan(elementToExpand, bottomRight.X - topLeft.X + 1);
-        
+
         OnCellChanged(CellsChangeType.SizeIncreased, elementToExpand, originalRow, originalColumn);
-        
+
         SetIsSelected(elementToExpand, false);
     }
 
@@ -202,10 +204,10 @@ public sealed class DynamicGrid : Grid
         var columnIndex = GetColumn(element);
         var rowSpan = GetRowSpan(element);
         var columnSpan = GetColumnSpan(element);
-        
+
         SetRowSpan(element, 1);
         SetColumnSpan(element, 1);
-        
+
         OnCellChanged(CellsChangeType.SizeDecreased, element, rowIndex, columnIndex);
 
         for (var row = 0; row <= rowSpan; row++)
@@ -216,7 +218,7 @@ public sealed class DynamicGrid : Grid
                 {
                     continue;
                 }
-                
+
                 AddEmptyCell(rowIndex + row, columnIndex + column);
             }
         }
@@ -234,17 +236,17 @@ public sealed class DynamicGrid : Grid
         var rowSpan = GetRowSpan(element);
         var columnSpan = GetColumnSpan(element);
         var newColumnSpan = columnSpan / 2;
-        
+
         SetColumnSpan(element, newColumnSpan);
-        
+
         OnCellChanged(CellsChangeType.SizeDecreased, element, row, columnIndex);
-       
+
         for (var column = 1; column <= columnSpan; column++)
         {
             AddEmptyCell(row, GetColumn(element) + column, rowSpan, newColumnSpan);
         }
     }
-    
+
     private void SplitCellVertical_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { Tag: UIElement element })
@@ -259,15 +261,15 @@ public sealed class DynamicGrid : Grid
         var newRowSpan = rowSpan / 2;
 
         SetRowSpan(element, newRowSpan);
-        
+
         OnCellChanged(CellsChangeType.SizeDecreased, element, rowIndex, column);
-       
+
         for (var row = 1; row <= rowSpan; row++)
         {
             AddEmptyCell(GetRow(element) + row, column, newRowSpan, columnSpan);
         }
     }
-    
+
     private void Grid_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.OriginalSource is FrameworkElement clickedElement)
@@ -276,7 +278,7 @@ public sealed class DynamicGrid : Grid
             clickedElement.ContextMenu.IsOpen = true;
         }
     }
-    
+
     private ContextMenu AssignContextMenu(UIElement element)
     {
         var contextMenu = new ContextMenu();
@@ -300,7 +302,7 @@ public sealed class DynamicGrid : Grid
     private static void AddSelectMenuItem(UIElement element, ContextMenu contextMenu)
     {
         var isSelected = GetIsSelected(element);
-        var selectItem = new MenuItem { Header = isSelected ? "Unselect" : "Select", Tag = element};
+        var selectItem = new MenuItem { Header = isSelected ? "Unselect" : "Select", Tag = element };
         selectItem.Click += (_, _) => SetIsSelected(element, !GetIsSelected(element));
         contextMenu.Items.Add(selectItem);
     }
@@ -323,7 +325,7 @@ public sealed class DynamicGrid : Grid
             addRowItem.Items.Add(addRowBelowItem);
             contextMenu.Items.Add(addRowItem);
         }
-        
+
         if (RowDefinitions.Count > MinRows)
         {
             var removeRowItem = new MenuItem { Header = "Remove Row", Tag = element };
@@ -365,7 +367,7 @@ public sealed class DynamicGrid : Grid
         {
             return;
         }
-        
+
         var mergeItem = new MenuItem { Header = "Merge selected Cells", Tag = element };
         mergeItem.Click += MergeCells_Click;
         contextMenu.Items.Add(mergeItem);
@@ -375,16 +377,16 @@ public sealed class DynamicGrid : Grid
     {
         var hasRowSpan = GetRowSpan(element) > 1;
         var hasColumnSpan = GetColumnSpan(element) > 1;
-        if (!hasRowSpan && !hasColumnSpan )
+        if (!hasRowSpan && !hasColumnSpan)
         {
             return;
         }
-        
+
         var splitItem = new MenuItem { Header = "Split Cell" };
         var splitMerge = new MenuItem { Header = "Split Merge", Tag = element };
         splitMerge.Click += SplitMerge_Click;
         splitItem.Items.Add(splitMerge);
-        
+
         if (hasColumnSpan)
         {
             var splitHorizontalItem = new MenuItem { Header = "Split Horizontal", Tag = element };
@@ -398,7 +400,7 @@ public sealed class DynamicGrid : Grid
             splitVerticalItem.Click += SplitCellVertical_Click;
             splitItem.Items.Add(splitVerticalItem);
         }
-        
+
         contextMenu.Items.Add(splitItem);
     }
 
@@ -409,12 +411,13 @@ public sealed class DynamicGrid : Grid
 
     private static (Point topLeft, Point bottomRight) GetSelectedSquare(IList<UIElement> cells)
     {
-        var positionData = cells.Select(c => (Row: GetRow(c), Column: GetColumn(c), RowSpan: GetRowSpan(c), ColumnSpan: GetColumnSpan(c))).ToList();
+        var positionData = cells.Select(c =>
+            (Row: GetRow(c), Column: GetColumn(c), RowSpan: GetRowSpan(c), ColumnSpan: GetColumnSpan(c))).ToList();
         if (positionData.Count == 0)
         {
             return (new Point(-1, -1), new Point(-1, -1));
         }
-        
+
         var rowStart = positionData.Select(position => position.Row).Min();
         var rowEnd = positionData.Select(position => position.Row + position.RowSpan - 1).Max();
         var columnStart = positionData.Select(position => position.Column).Min();
@@ -440,14 +443,15 @@ public sealed class DynamicGrid : Grid
     {
         return (int)value > 0;
     }
-    
-    private static void ShowGridSplitterPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+
+    private static void ShowGridSplitterPropertyChangedCallback(DependencyObject d,
+        DependencyPropertyChangedEventArgs e)
     {
         if (d is not DynamicGrid dynamicGrid)
         {
             return;
         }
-        
+
         if ((bool)e.NewValue)
         {
             AddGridSplitter(dynamicGrid);
@@ -457,7 +461,7 @@ public sealed class DynamicGrid : Grid
             RemoveGridSplitter(dynamicGrid);
         }
     }
-    
+
     private static void AddGridSplitter(DynamicGrid dynamicGrid)
     {
         var newRowCount = (dynamicGrid.RowDefinitions.Count * 2) - 1;
@@ -465,7 +469,7 @@ public sealed class DynamicGrid : Grid
         {
             InsertSplitterRowDefinition(dynamicGrid, rowIndex);
         }
-        
+
         var newColumnCount = (dynamicGrid.ColumnDefinitions.Count * 2) - 1;
         for (int columnIndex = 1; columnIndex < newColumnCount; columnIndex += 2)
         {
@@ -484,20 +488,20 @@ public sealed class DynamicGrid : Grid
         {
             AddRowSplitter(dynamicGrid, rowIndex);
         }
-        
+
         for (int columnIndex = 1; columnIndex < dynamicGrid.ColumnDefinitions.Count - 1; columnIndex += 2)
         {
             AddColumnSplitter(dynamicGrid, columnIndex);
         }
     }
-    
+
     private static void RemoveGridSplitter(DynamicGrid dynamicGrid)
     {
         for (int rowIndex = dynamicGrid.RowDefinitions.Count - 2; rowIndex >= 0; rowIndex -= 2)
         {
             dynamicGrid.RowDefinitions.RemoveAt(rowIndex);
         }
-        
+
         for (int columnIndex = dynamicGrid.ColumnDefinitions.Count - 2; columnIndex >= 0; columnIndex -= 2)
         {
             dynamicGrid.ColumnDefinitions.RemoveAt(columnIndex);
@@ -510,7 +514,7 @@ public sealed class DynamicGrid : Grid
                 dynamicGrid.Children.RemoveAt(i);
             }
         }
-        
+
         for (int i = dynamicGrid.Children.Count - 1; i >= 0; i--)
         {
             UIElement element = dynamicGrid.Children[i];
@@ -520,7 +524,7 @@ public sealed class DynamicGrid : Grid
         }
     }
 
-    
+
     #region Add/Remove Row
 
     private void AddRow(UIElement element, RowPosition position)
@@ -580,7 +584,7 @@ public sealed class DynamicGrid : Grid
             }
         }
     }
-    
+
     private void RemoveRow(UIElement element)
     {
         var rowIndex = GetRow(element);
@@ -636,7 +640,7 @@ public sealed class DynamicGrid : Grid
     }
 
     #endregion
-    
+
     #region Add/Remove Column
 
     private void AddColumn(UIElement element, ColumnPosition position)
@@ -697,7 +701,7 @@ public sealed class DynamicGrid : Grid
             }
         }
     }
-    
+
     private void RemoveColumn(UIElement element)
     {
         var columnIndex = GetColumn(element);
@@ -761,10 +765,10 @@ public sealed class DynamicGrid : Grid
         {
             dataContext = frameworkElement.DataContext;
         }
-        
+
         OnCellChanged(new CellChangedEventArgs(changeType, new Point(rowIndex, columnIndex), dataContext));
     }
-    
+
     private void OnCellChanged(CellChangedEventArgs e)
     {
         CellChanged?.Invoke(this, e);
