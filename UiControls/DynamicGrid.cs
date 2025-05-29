@@ -463,15 +463,13 @@ public sealed class DynamicGrid : Grid
         var newRowCount = (dynamicGrid.RowDefinitions.Count * 2) - 1;
         for (int rowIndex = 1; rowIndex < newRowCount; rowIndex += 2)
         {
-            var newRow = new RowDefinition { Height = new GridLength(2, GridUnitType.Pixel) };
-            dynamicGrid.RowDefinitions.Insert(rowIndex, newRow);
+            InsertSplitterRowDefinition(dynamicGrid, rowIndex);
         }
         
         var newColumnCount = (dynamicGrid.ColumnDefinitions.Count * 2) - 1;
         for (int columnIndex = 1; columnIndex < newColumnCount; columnIndex += 2)
         {
-            var newColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Pixel) };
-            dynamicGrid.ColumnDefinitions.Insert(columnIndex, newColumn);
+            InsertSplitterColumnDefinition(dynamicGrid, columnIndex);
         }
 
         for (int i = dynamicGrid.Children.Count - 1; i >= 0; i--)
@@ -484,20 +482,12 @@ public sealed class DynamicGrid : Grid
 
         for (int rowIndex = 1; rowIndex < dynamicGrid.RowDefinitions.Count - 1; rowIndex += 2)
         {
-            var gridSplitter = new GridSplitter
-                { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
-            dynamicGrid.Children.Add(gridSplitter);
-            SetRow(gridSplitter, rowIndex);
-            SetColumnSpan(gridSplitter, dynamicGrid.ColumnDefinitions.Count);
+            AddRowSplitter(dynamicGrid, rowIndex);
         }
         
         for (int columnIndex = 1; columnIndex < dynamicGrid.ColumnDefinitions.Count - 1; columnIndex += 2)
         {
-            var gridSplitter = new GridSplitter
-                { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
-            dynamicGrid.Children.Add(gridSplitter);
-            SetColumn(gridSplitter, columnIndex);
-            SetRowSpan(gridSplitter, dynamicGrid.RowDefinitions.Count);
+            AddColumnSplitter(dynamicGrid, columnIndex);
         }
     }
     
@@ -558,6 +548,11 @@ public sealed class DynamicGrid : Grid
     {
         var newRow = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
         RowDefinitions.Insert(rowIndex, newRow);
+
+        if (ShowGridSplitter)
+        {
+            InsertSplitterRowDefinition(this, rowIndex + 1);
+        }
     }
 
     private void InsertRowWithBorderBackground(int rowIndex)
@@ -565,6 +560,11 @@ public sealed class DynamicGrid : Grid
         for (int col = 0; col < ColumnDefinitions.Count; col++)
         {
             AddEmptyCell(rowIndex, col);
+        }
+
+        if (ShowGridSplitter)
+        {
+            AddRowSplitter(this, rowIndex + 1);
         }
     }
 
@@ -575,7 +575,8 @@ public sealed class DynamicGrid : Grid
             int row = GetRow(element);
             if (row >= startIndex)
             {
-                SetRow(element, row + 1);
+                int newRow = row + (ShowGridSplitter ? 2 : 1);
+                SetRow(element, newRow);
             }
         }
     }
@@ -615,6 +616,25 @@ public sealed class DynamicGrid : Grid
         }
     }
 
+    private static void InsertSplitterRowDefinition(DynamicGrid dynamicGrid, int rowIndex)
+    {
+        var newRow = new RowDefinition { Height = new GridLength(2, GridUnitType.Pixel) };
+        dynamicGrid.RowDefinitions.Insert(rowIndex, newRow);
+    }
+
+    private static void AddRowSplitter(DynamicGrid dynamicGrid, int rowIndex)
+    {
+        var gridSplitter = new GridSplitter
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch
+        };
+
+        dynamicGrid.Children.Add(gridSplitter);
+        SetRow(gridSplitter, rowIndex);
+        SetColumnSpan(gridSplitter, dynamicGrid.ColumnDefinitions.Count);
+    }
+
     #endregion
     
     #region Add/Remove Column
@@ -640,10 +660,15 @@ public sealed class DynamicGrid : Grid
         InsertColumnWithBorderBackground(columnIndex);
     }
 
-    private void InsertNewColumnDefinition(int rowIndex)
+    private void InsertNewColumnDefinition(int columnIndex)
     {
         var newColumn = new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) };
-        ColumnDefinitions.Insert(rowIndex, newColumn);
+        ColumnDefinitions.Insert(columnIndex, newColumn);
+
+        if (ShowGridSplitter)
+        {
+            InsertSplitterColumnDefinition(this, columnIndex + 1);
+        }
     }
 
     private void InsertColumnWithBorderBackground(int columnIndex)
@@ -652,6 +677,11 @@ public sealed class DynamicGrid : Grid
         for (int row = 0; row < rowCount; row++)
         {
             AddEmptyCell(row, columnIndex);
+        }
+
+        if (ShowGridSplitter)
+        {
+            AddColumnSplitter(this, columnIndex + 1);
         }
     }
 
@@ -662,7 +692,8 @@ public sealed class DynamicGrid : Grid
             int column = GetColumn(element);
             if (column >= startIndex)
             {
-                SetColumn(element, column + 1);
+                int newColumn = column + (ShowGridSplitter ? 2 : 1);
+                SetColumn(element, newColumn);
             }
         }
     }
@@ -700,6 +731,25 @@ public sealed class DynamicGrid : Grid
                 SetColumn(element, currentColumn - 1);
             }
         }
+    }
+
+    private static void InsertSplitterColumnDefinition(DynamicGrid dynamicGrid, int columnIndex)
+    {
+        var newColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Pixel) };
+        dynamicGrid.ColumnDefinitions.Insert(columnIndex, newColumn);
+    }
+
+    private static void AddColumnSplitter(DynamicGrid dynamicGrid, int columnIndex)
+    {
+        var gridSplitter = new GridSplitter
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch
+        };
+
+        dynamicGrid.Children.Add(gridSplitter);
+        SetColumn(gridSplitter, columnIndex);
+        SetRowSpan(gridSplitter, dynamicGrid.RowDefinitions.Count);
     }
 
     #endregion
