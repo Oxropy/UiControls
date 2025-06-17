@@ -9,6 +9,11 @@ namespace UiControlsExamples;
 /// </summary>
 public partial class MainWindow
 {
+    // how can the viewmodel decide where which cell goes?
+    // do i create a user control?
+    // how can the style be changed from an implementer
+    // add flag to add grid splitter in-between cells
+
     public MainWindow()
     {
         InitializeComponent();
