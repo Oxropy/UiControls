@@ -11,6 +11,16 @@ public partial class MainWindow
 {
     private static readonly SolidColorBrush DefaultOverlayBrush = new(Color.FromArgb(128, 0, 255, 0));
     private static readonly SolidColorBrush HoverOverlayBrush = new(Color.FromArgb(128, 255, 165, 0));
+
+    private static readonly DropPosition[] Positions =
+    [
+        DropPosition.Top,
+        DropPosition.Right,
+        DropPosition.Bottom,
+        DropPosition.Left,
+        DropPosition.Center
+    ];
+
     private Point _startPoint;
     private Rectangle? _dropOverlayTop;
     private Rectangle? _dropOverlayRight;
@@ -144,6 +154,11 @@ public partial class MainWindow
         {
             var position = e.GetPosition(border);
             var dropPosition = DetermineDropPosition(position, border);
+            if (dropPosition == DropPosition.Unknown)
+            {
+                RemoveDropOverlay();
+                return;
+            }
 
             // Update the target element with the dropped item
             if (border.Child is TextBlock textBlock)
@@ -239,15 +254,42 @@ public partial class MainWindow
     
     private DropPosition DetermineDropPosition(Point position, FrameworkElement target)
     {
-        double relativeX = position.X / target.ActualWidth;
-        double relativeY = position.Y / target.ActualHeight;
+        // Convert the position to be relative to the overlay canvas
+        Point canvasPosition = target.TranslatePoint(position, _overlayCanvas);
 
+        // Check each rectangle
+        Rectangle?[] overlayRectangles =
+        [
+            _dropOverlayTop,
+            _dropOverlayRight,
+            _dropOverlayBottom,
+            _dropOverlayLeft,
+            _dropOverlayCenter
+        ];
         
-        if (relativeX < 0.3) return DropPosition.Left;
-        if (relativeX > 0.7) return DropPosition.Right;
-        if (relativeY < 0.3) return DropPosition.Top;
-        if (relativeY > 0.7) return DropPosition.Bottom;
-        return DropPosition.Center;
+        for (int i = 0; i < overlayRectangles.Length; i++)
+        {
+            var rectangle = overlayRectangles[i];
+            if (rectangle is null) continue;
+            
+            double left = Canvas.GetLeft(rectangle);
+            double top = Canvas.GetTop(rectangle);
+        
+            Rect bounds = new(
+                left, 
+                top, 
+                rectangle.Width, 
+                rectangle.Height
+            );
+
+            if (bounds.Contains(canvasPosition))
+            {
+                return Positions[i];
+            }
+        }
+
+        // Default to Center if somehow not over any rectangle
+        return DropPosition.Unknown;
     }
 
     private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
@@ -271,6 +313,7 @@ public partial class MainWindow
 
     private enum DropPosition
     {
+        Unknown,
         Top,
         Right,
         Bottom,
