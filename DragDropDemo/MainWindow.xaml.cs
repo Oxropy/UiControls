@@ -103,9 +103,9 @@ public partial class MainWindow
         if (_currentTarget is FrameworkElement target)
         {
             Point position = e.GetPosition(target);
-            string dropPosition = DetermineDropPosition(position, target);
+            DropPosition dropPosition = DetermineDropPosition(position, target);
         
-            // Reset all rectangles to default color
+            // Reset all rectangles to the default color
             _dropOverlayTop!.Fill = DefaultOverlayBrush;
             _dropOverlayRight!.Fill = DefaultOverlayBrush;
             _dropOverlayBottom!.Fill = DefaultOverlayBrush;
@@ -115,11 +115,11 @@ public partial class MainWindow
             // Highlight the appropriate rectangle based on position
             Rectangle? rectangleToHighlight = dropPosition switch
             {
-                "Top" => _dropOverlayTop,
-                "Right" => _dropOverlayRight,
-                "Bottom" => _dropOverlayBottom,
-                "Left" => _dropOverlayLeft,
-                "Center" => _dropOverlayCenter,
+                DropPosition.Top => _dropOverlayTop,
+                DropPosition.Right => _dropOverlayRight,
+                DropPosition.Bottom => _dropOverlayBottom,
+                DropPosition.Left => _dropOverlayLeft,
+                DropPosition.Center => _dropOverlayCenter,
                 _ => null
             };
 
@@ -171,11 +171,8 @@ public partial class MainWindow
         var rectangle = new Rectangle
         {
             Fill = DefaultOverlayBrush,
-            IsHitTestVisible = true
+            IsHitTestVisible = false
         };
-
-        rectangle.MouseEnter += Rectangle_MouseEnter;
-        rectangle.MouseLeave += Rectangle_MouseLeave;
 
         _overlayCanvas.Children.Add(rectangle);
         return rectangle;
@@ -228,10 +225,6 @@ public partial class MainWindow
         {
             if (rectangle != null)
             {
-                // Unsubscribe from events
-                rectangle.MouseEnter -= Rectangle_MouseEnter;
-                rectangle.MouseLeave -= Rectangle_MouseLeave;
-                
                 _overlayCanvas.Children.Remove(rectangle);
                 rectangle = null;
             }
@@ -243,34 +236,18 @@ public partial class MainWindow
         RemoveAndCleanup(ref _dropOverlayLeft);
         RemoveAndCleanup(ref _dropOverlayCenter);
     }
-
-    private static void Rectangle_MouseEnter(object sender, MouseEventArgs e)
-    {
-        if (sender is Rectangle rectangle)
-        {
-            rectangle.Fill = HoverOverlayBrush;
-        }
-    }
-
-    private static void Rectangle_MouseLeave(object sender, MouseEventArgs e)
-    {
-        if (sender is Rectangle rectangle)
-        {
-            rectangle.Fill = DefaultOverlayBrush;
-        }
-    }
-
     
-    private string DetermineDropPosition(Point position, FrameworkElement target)
+    private DropPosition DetermineDropPosition(Point position, FrameworkElement target)
     {
         double relativeX = position.X / target.ActualWidth;
         double relativeY = position.Y / target.ActualHeight;
 
-        if (relativeX < 0.3) return "Left";
-        if (relativeX > 0.7) return "Right";
-        if (relativeY < 0.3) return "Top";
-        if (relativeY > 0.7) return "Bottom";
-        return "Center";
+        
+        if (relativeX < 0.3) return DropPosition.Left;
+        if (relativeX > 0.7) return DropPosition.Right;
+        if (relativeY < 0.3) return DropPosition.Top;
+        if (relativeY > 0.7) return DropPosition.Bottom;
+        return DropPosition.Center;
     }
 
     private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
@@ -290,5 +267,14 @@ public partial class MainWindow
         } while (current != null);
 
         return null;
+    }
+
+    private enum DropPosition
+    {
+        Top,
+        Right,
+        Bottom,
+        Left,
+        Center
     }
 }
