@@ -9,8 +9,8 @@ namespace DragDropDemo;
 
 public partial class MainWindow
 {
-    private static readonly SolidColorBrush DefaultOverlayBrush = new(Color.FromArgb(128, 0, 255, 0));
-    private static readonly SolidColorBrush HoverOverlayBrush = new(Color.FromArgb(128, 255, 165, 0));
+    private static readonly Color DefaultColor = Color.FromArgb(128, 0, 255, 0);
+    private static readonly Color HoverColor = Color.FromArgb(128, 255, 165, 0);
 
     private static readonly DropPosition[] Positions =
     [
@@ -21,14 +21,14 @@ public partial class MainWindow
         DropPosition.Center
     ];
 
-    private Point _startPoint;
-    private Rectangle? _dropOverlayTop;
-    private Rectangle? _dropOverlayRight;
-    private Rectangle? _dropOverlayBottom;
-    private Rectangle? _dropOverlayLeft;
-    private Rectangle? _dropOverlayCenter;
-    private UIElement? _currentTarget;
     private readonly Canvas _overlayCanvas;
+    private readonly OverlayRectangle _dropOverlayTop;
+    private readonly OverlayRectangle _dropOverlayRight;
+    private readonly OverlayRectangle _dropOverlayBottom;
+    private readonly OverlayRectangle _dropOverlayLeft;
+    private readonly OverlayRectangle _dropOverlayCenter;
+    private Point _startPoint;
+    private UIElement? _currentTarget;
 
     public MainWindow()
     {
@@ -39,6 +39,12 @@ public partial class MainWindow
         {
             IsHitTestVisible = false
         };
+
+        _dropOverlayTop = new OverlayRectangle(DropPosition.Top, DefaultColor, HoverColor);
+        _dropOverlayRight = new OverlayRectangle(DropPosition.Right, DefaultColor, HoverColor);
+        _dropOverlayBottom = new OverlayRectangle(DropPosition.Bottom, DefaultColor, HoverColor);
+        _dropOverlayLeft = new OverlayRectangle(DropPosition.Left, DefaultColor, HoverColor);
+        _dropOverlayCenter = new OverlayRectangle(DropPosition.Center, DefaultColor, HoverColor);
 
         InitializeOverlayCanvas();
         InitializeDragDrop();
@@ -108,22 +114,22 @@ public partial class MainWindow
     private void Border_DragOver(object sender, DragEventArgs e)
     {
         UpdateDropOverlayPosition();
-        
+
         // Get the mouse position relative to the current target
         if (_currentTarget is FrameworkElement target)
         {
             Point position = e.GetPosition(target);
             DropPosition dropPosition = DetermineDropPosition(position, target);
-        
+
             // Reset all rectangles to the default color
-            _dropOverlayTop!.Fill = DefaultOverlayBrush;
-            _dropOverlayRight!.Fill = DefaultOverlayBrush;
-            _dropOverlayBottom!.Fill = DefaultOverlayBrush;
-            _dropOverlayLeft!.Fill = DefaultOverlayBrush;
-            _dropOverlayCenter!.Fill = DefaultOverlayBrush;
+            _dropOverlayTop.SetDefaultBrush();
+            _dropOverlayRight.SetDefaultBrush();
+            _dropOverlayBottom.SetDefaultBrush();
+            _dropOverlayLeft.SetDefaultBrush();
+            _dropOverlayCenter.SetDefaultBrush();
 
             // Highlight the appropriate rectangle based on position
-            Rectangle? rectangleToHighlight = dropPosition switch
+            OverlayRectangle? rectangleToHighlight = dropPosition switch
             {
                 DropPosition.Top => _dropOverlayTop,
                 DropPosition.Right => _dropOverlayRight,
@@ -133,10 +139,7 @@ public partial class MainWindow
                 _ => null
             };
 
-            if (rectangleToHighlight != null)
-            {
-                rectangleToHighlight.Fill = HoverOverlayBrush;
-            }
+            rectangleToHighlight?.SetHoverBrush();
         }
 
         e.Effects = DragDropEffects.Move;
@@ -172,93 +175,74 @@ public partial class MainWindow
 
     private void ShowDropOverlay()
     {
-        _dropOverlayTop ??= AddDropOverlay();
-        _dropOverlayRight ??= AddDropOverlay();
-        _dropOverlayBottom ??= AddDropOverlay();
-        _dropOverlayLeft ??= AddDropOverlay();
-        _dropOverlayCenter ??= AddDropOverlay();
+        _dropOverlayTop.AddToCanvas(_overlayCanvas);
+        _dropOverlayRight.AddToCanvas(_overlayCanvas);
+        _dropOverlayBottom.AddToCanvas(_overlayCanvas);
+        _dropOverlayLeft.AddToCanvas(_overlayCanvas);
+        _dropOverlayCenter.AddToCanvas(_overlayCanvas);
 
         UpdateDropOverlayPosition();
     }
 
-    private Rectangle AddDropOverlay()
-    {
-        var rectangle = new Rectangle
-        {
-            Fill = DefaultOverlayBrush,
-            IsHitTestVisible = false
-        };
-
-        _overlayCanvas.Children.Add(rectangle);
-        return rectangle;
-    }
-    
-    private void UpdateOverlayRectangleSize(Rectangle rectangle, double width, double height)
-    {
-        rectangle.Width = width;
-        rectangle.Height = height;
-    }
-
     private void UpdateDropOverlayPosition()
     {
-        if (_dropOverlayTop == null || _dropOverlayRight == null || _dropOverlayBottom == null ||
-            _dropOverlayLeft == null || _dropOverlayCenter == null ||
-            _currentTarget is not FrameworkElement target) return;
+        if (_currentTarget is not FrameworkElement target) return;
 
         // Get the position of the target relative to the overlay canvas
         Point targetPos = target.TranslatePoint(new Point(0, 0), _overlayCanvas);
 
-        const double smallSize = 0.05;
+        const double smallSize = 0.1;
         const double middleSize = 0.25;
-        const double largeSize = 0.75;
+        const double largeSize = 0.8;
 
         // Position the overlay based on which quadrant the mouse is in
-        UpdateOverlayRectangleSize(_dropOverlayTop, target.ActualWidth * largeSize, target.ActualHeight * smallSize);
-        Canvas.SetLeft(_dropOverlayTop, targetPos.X + (target.ActualWidth - _dropOverlayTop.Width) / 2);
-        Canvas.SetTop(_dropOverlayTop, targetPos.Y);
+        _dropOverlayTop.Width = target.ActualWidth * largeSize;
+        _dropOverlayTop.Height = target.ActualHeight * smallSize;
+        _dropOverlayTop.Left = targetPos.X + (target.ActualWidth - _dropOverlayTop.Width) / 2;
+        _dropOverlayTop.Top = targetPos.Y;
+        _dropOverlayTop.SetDefaultBrush();
 
-        UpdateOverlayRectangleSize(_dropOverlayRight, target.ActualWidth * smallSize, target.ActualHeight * largeSize);
-        Canvas.SetLeft(_dropOverlayRight, targetPos.X + target.ActualWidth - _dropOverlayRight.Width);
-        Canvas.SetTop(_dropOverlayRight, targetPos.Y + (target.ActualHeight - _dropOverlayRight.Height) / 2);
-        
-        UpdateOverlayRectangleSize(_dropOverlayBottom, target.ActualWidth * largeSize, target.ActualHeight * smallSize);
-        Canvas.SetLeft(_dropOverlayBottom, targetPos.X + (target.ActualWidth - _dropOverlayBottom.Width) / 2);
-        Canvas.SetTop(_dropOverlayBottom, targetPos.Y + target.ActualHeight - _dropOverlayBottom.Height);
-        
-        UpdateOverlayRectangleSize(_dropOverlayLeft, target.ActualWidth * smallSize, target.ActualHeight * largeSize);
-        Canvas.SetLeft(_dropOverlayLeft, targetPos.X);
-        Canvas.SetTop(_dropOverlayLeft, targetPos.Y + (target.ActualHeight - _dropOverlayLeft.Height) / 2);
-        
-        UpdateOverlayRectangleSize(_dropOverlayCenter, target.ActualWidth * middleSize, target.ActualHeight * middleSize);
-        Canvas.SetLeft(_dropOverlayCenter, targetPos.X + target.ActualWidth / 2 - _dropOverlayCenter.Width / 2);
-        Canvas.SetTop(_dropOverlayCenter, targetPos.Y + target.ActualHeight / 2 - _dropOverlayCenter.Height / 2);
+        _dropOverlayRight.Width = target.ActualWidth * smallSize;
+        _dropOverlayRight.Height = target.ActualHeight * largeSize;
+        _dropOverlayRight.Left = targetPos.X + target.ActualWidth - _dropOverlayRight.Width;
+        _dropOverlayRight.Top = targetPos.Y + (target.ActualHeight - _dropOverlayRight.Height) / 2;
+        _dropOverlayRight.SetDefaultBrush();
+
+        _dropOverlayBottom.Width = target.ActualWidth * largeSize;
+        _dropOverlayBottom.Height = target.ActualHeight * smallSize;
+        _dropOverlayBottom.Left = targetPos.X + (target.ActualWidth - _dropOverlayBottom.Width) / 2;
+        _dropOverlayBottom.Top = targetPos.Y + target.ActualHeight - _dropOverlayBottom.Height;
+        _dropOverlayBottom.SetDefaultBrush();
+
+        _dropOverlayLeft.Width = target.ActualWidth * smallSize;
+        _dropOverlayLeft.Height = target.ActualHeight * largeSize;
+        _dropOverlayLeft.Left = targetPos.X;
+        _dropOverlayLeft.Top = targetPos.Y + (target.ActualHeight - _dropOverlayLeft.Height) / 2;
+        _dropOverlayLeft.SetDefaultBrush();
+
+        _dropOverlayCenter.Width = target.ActualWidth * middleSize;
+        _dropOverlayCenter.Height = target.ActualHeight * middleSize;
+        _dropOverlayCenter.Left = targetPos.X + target.ActualWidth / 2 - _dropOverlayCenter.Width / 2;
+        _dropOverlayCenter.Top = targetPos.Y + target.ActualHeight / 2 - _dropOverlayCenter.Height / 2;
+        _dropOverlayCenter.SetDefaultBrush();
     }
 
     private void RemoveDropOverlay()
     {
-        void RemoveAndCleanup(ref Rectangle? rectangle)
-        {
-            if (rectangle != null)
-            {
-                _overlayCanvas.Children.Remove(rectangle);
-                rectangle = null;
-            }
-        }
-
-        RemoveAndCleanup(ref _dropOverlayTop);
-        RemoveAndCleanup(ref _dropOverlayRight);
-        RemoveAndCleanup(ref _dropOverlayBottom);
-        RemoveAndCleanup(ref _dropOverlayLeft);
-        RemoveAndCleanup(ref _dropOverlayCenter);
+        _dropOverlayTop.RemoveFromCanvas(_overlayCanvas);
+        _dropOverlayRight.RemoveFromCanvas(_overlayCanvas);
+        _dropOverlayBottom.RemoveFromCanvas(_overlayCanvas);
+        _dropOverlayLeft.RemoveFromCanvas(_overlayCanvas);
+        _dropOverlayCenter.RemoveFromCanvas(_overlayCanvas);
     }
-    
+
     private DropPosition DetermineDropPosition(Point position, FrameworkElement target)
     {
         // Convert the position to be relative to the overlay canvas
         Point canvasPosition = target.TranslatePoint(position, _overlayCanvas);
 
         // Check each rectangle
-        Rectangle?[] overlayRectangles =
+        OverlayRectangle?[] overlayRectangles =
         [
             _dropOverlayTop,
             _dropOverlayRight,
@@ -266,29 +250,18 @@ public partial class MainWindow
             _dropOverlayLeft,
             _dropOverlayCenter
         ];
-        
+
         for (int i = 0; i < overlayRectangles.Length; i++)
         {
             var rectangle = overlayRectangles[i];
             if (rectangle is null) continue;
-            
-            double left = Canvas.GetLeft(rectangle);
-            double top = Canvas.GetTop(rectangle);
-        
-            Rect bounds = new(
-                left, 
-                top, 
-                rectangle.Width, 
-                rectangle.Height
-            );
 
-            if (bounds.Contains(canvasPosition))
+            if (rectangle.Bounds.Contains(canvasPosition))
             {
                 return Positions[i];
             }
         }
 
-        // Default to Center if somehow not over any rectangle
         return DropPosition.Unknown;
     }
 
@@ -319,5 +292,137 @@ public partial class MainWindow
         Bottom,
         Left,
         Center
+    }
+
+    private class OverlayRectangle
+    {
+        private readonly Rectangle _rectangle;
+        private readonly Brush _defaultBrush;
+        private readonly Brush _hoverBrush;
+
+        public OverlayRectangle(DropPosition dropPosition, Color defaultColor, Color hoverColor)
+        {
+            _rectangle = new Rectangle
+            {
+                IsHitTestVisible = false
+            };
+
+            switch (dropPosition)
+            {
+                case DropPosition.Unknown:
+                    _defaultBrush = new SolidColorBrush(defaultColor);
+                    _hoverBrush = new SolidColorBrush(hoverColor);
+                    return;
+                case DropPosition.Top:
+                case DropPosition.Right:
+                case DropPosition.Bottom:
+                case DropPosition.Left:
+                    _defaultBrush = GetEdgeBrush(dropPosition, defaultColor);
+                    _hoverBrush = GetEdgeBrush(dropPosition, hoverColor);
+                    return;
+                case DropPosition.Center:
+                    _defaultBrush = GetCenterBrush(defaultColor);
+                    _hoverBrush = GetCenterBrush(hoverColor);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(dropPosition), dropPosition, null);
+            }
+        }
+
+        public double Left
+        {
+            private get => Canvas.GetLeft(_rectangle);
+            set => Canvas.SetLeft(_rectangle, value);
+        }
+
+        public double Top
+        {
+            private get => Canvas.GetTop(_rectangle);
+            set => Canvas.SetTop(_rectangle, value);
+        }
+
+        public double Width
+        {
+            get => _rectangle.Width;
+            set => _rectangle.Width = value;
+        }
+
+        public double Height
+        {
+            get => _rectangle.Height;
+            set => _rectangle.Height = value;
+        }
+
+        public Rect Bounds => new(Left, Top, Width, Height);
+
+        public void AddToCanvas(Canvas canvas)
+        {
+            canvas.Children.Add(_rectangle);
+        }
+
+        public void RemoveFromCanvas(Canvas canvas)
+        {
+            canvas.Children.Remove(_rectangle);
+        }
+
+        public void SetDefaultBrush()
+        {
+            _rectangle.Fill = _defaultBrush;
+        }
+
+        public void SetHoverBrush()
+        {
+            _rectangle.Fill = _hoverBrush;
+        }
+
+        private static LinearGradientBrush GetEdgeBrush(DropPosition dropPosition, Color color)
+        {
+            var angle = dropPosition switch
+            {
+                DropPosition.Top => 90,
+                DropPosition.Right => 180,
+                DropPosition.Bottom => 270,
+                DropPosition.Left => 0,
+                _ => throw new ArgumentOutOfRangeException(nameof(dropPosition), dropPosition, null)
+            };
+
+            return CreateInwardGradientBrush(color, angle);
+        }
+
+        private static LinearGradientBrush CreateInwardGradientBrush(Color startColor, double angle)
+        {
+            var brush = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 0)
+            };
+
+            // Add gradient stops (solid on the outside, transparent on the inside)
+            brush.GradientStops.Add(new GradientStop(startColor, 0.0)); // Solid
+            brush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0)); // Transparent
+
+            // Rotate the brush
+            brush.RelativeTransform = new RotateTransform(angle, 0.5, 0.5);
+
+            return brush;
+        }
+
+        private static RadialGradientBrush GetCenterBrush(Color centerColor)
+        {
+            // Create a radial gradient brush for the center
+            var centerBrush = new RadialGradientBrush
+            {
+                Center = new Point(0.5, 0.5),
+                GradientOrigin = new Point(0.5, 0.5),
+                RadiusX = 0.5,
+                RadiusY = 0.5
+            };
+
+            // Solid in the center
+            centerBrush.GradientStops.Add(new GradientStop(centerColor, 0.0));
+            // Transparent on edges
+            centerBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+            return centerBrush;
+        }
     }
 }
