@@ -102,10 +102,15 @@ public partial class MainWindow
         }
     }
 
+    private static bool IsControlPressed(DragEventArgs e)
+    {
+        return (e.KeyStates & DragDropKeyStates.ControlKey) == DragDropKeyStates.ControlKey;
+    }
+
     private void Border_DragEnter(object sender, DragEventArgs e)
     {
         _currentTarget = sender as UIElement;
-        if (_currentTarget is not null)
+        if (_currentTarget is not null && !IsControlPressed(e))
         {
             ShowDropOverlay();
         }
@@ -113,20 +118,21 @@ public partial class MainWindow
 
     private void Border_DragOver(object sender, DragEventArgs e)
     {
-        UpdateDropOverlayPosition();
+        if (!IsControlPressed(e))
+        {
+            RemoveDropOverlay();
+            e.Effects = DragDropEffects.Move;
+            e.Handled = true;
+            return;
+        }
 
         // Get the mouse position relative to the current target
         if (_currentTarget is FrameworkElement target)
         {
+            ShowDropOverlay();
+
             Point position = e.GetPosition(target);
             DropPosition dropPosition = DetermineDropPosition(position, target);
-
-            // Reset all rectangles to the default color
-            _dropOverlayTop.SetDefaultBrush();
-            _dropOverlayRight.SetDefaultBrush();
-            _dropOverlayBottom.SetDefaultBrush();
-            _dropOverlayLeft.SetDefaultBrush();
-            _dropOverlayCenter.SetDefaultBrush();
 
             // Highlight the appropriate rectangle based on position
             OverlayRectangle? rectangleToHighlight = dropPosition switch
@@ -140,9 +146,11 @@ public partial class MainWindow
             };
 
             rectangleToHighlight?.SetHoverBrush();
+
+            // Allow dropping if we're over a valid drop position
+            e.Effects = dropPosition != DropPosition.Unknown ? DragDropEffects.Move : DragDropEffects.None;
         }
 
-        e.Effects = DragDropEffects.Move;
         e.Handled = true;
     }
 
@@ -299,6 +307,7 @@ public partial class MainWindow
         private readonly Rectangle _rectangle;
         private readonly Brush _defaultBrush;
         private readonly Brush _hoverBrush;
+        private bool _isShowing;
 
         public OverlayRectangle(DropPosition dropPosition, Color defaultColor, Color hoverColor)
         {
@@ -357,12 +366,16 @@ public partial class MainWindow
 
         public void AddToCanvas(Canvas canvas)
         {
+            if (_isShowing) return;
+
+            _isShowing = true;
             canvas.Children.Add(_rectangle);
         }
 
         public void RemoveFromCanvas(Canvas canvas)
         {
             canvas.Children.Remove(_rectangle);
+            _isShowing = false;
         }
 
         public void SetDefaultBrush()
