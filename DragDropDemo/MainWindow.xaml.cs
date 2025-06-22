@@ -163,18 +163,24 @@ public partial class MainWindow
     {
         if (sender is Border border && e.Data.GetData(DataFormats.Text) is string draggedText)
         {
-            var position = e.GetPosition(border);
-            var dropPosition = DetermineDropPosition(position, border);
-            if (dropPosition == DropPosition.Unknown)
+            string dropText = draggedText;
+            if (IsControlPressed(e))
             {
-                RemoveDropOverlay();
-                return;
-            }
+                var position = e.GetPosition(border);
+                var dropPosition = DetermineDropPosition(position, border);
+                if (dropPosition == DropPosition.Unknown)
+                {
+                    RemoveDropOverlay();
+                    return;
+                }
 
+                dropText = $"{draggedText} ({dropPosition})";
+            }
+            
             // Update the target element with the dropped item
             if (border.Child is TextBlock textBlock)
             {
-                textBlock.Text = $"{draggedText} ({dropPosition})";
+                textBlock.Text = dropText;
             }
         }
 
