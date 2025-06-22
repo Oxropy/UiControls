@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using UiControls.DropOverlay;
@@ -9,29 +8,13 @@ namespace DragDropDemo;
 
 public partial class MainWindow
 {
-    private readonly DropOverlayControl _dropOverlay = new();
     private Point _startPoint;
     private UIElement? _currentTarget;
 
     public MainWindow()
     {
         InitializeComponent();
-        InitializeOverlayCanvas();
         InitializeDragDrop();
-    }
-
-    private void InitializeOverlayCanvas()
-    {
-        // Insert the canvas right after the TargetGrid in the visual tree
-        if (TargetGrid.Parent is Grid parentGrid)
-        {
-            parentGrid.Children.Add(_dropOverlay);
-            Grid.SetColumn(_dropOverlay, 1); // Same column as TargetGrid
-
-            // Bind the canvas size to the TargetGrid size
-            _dropOverlay.SetBinding(WidthProperty, new Binding(nameof(ActualWidth)) { Source = TargetGrid });
-            _dropOverlay.SetBinding(HeightProperty, new Binding(nameof(ActualHeight)) { Source = TargetGrid });
-        }
     }
 
     private void InitializeDragDrop()
@@ -82,7 +65,7 @@ public partial class MainWindow
         _currentTarget = sender as UIElement;
         if (_currentTarget is FrameworkElement target && !IsControlPressed(e))
         {
-            _dropOverlay.Show(target);
+            DropOverlay.Show(target);
         }
     }
 
@@ -90,7 +73,7 @@ public partial class MainWindow
     {
         if (!IsControlPressed(e))
         {
-            _dropOverlay.Hide();
+            DropOverlay.Hide();
             e.Effects = DragDropEffects.Move;
             e.Handled = true;
             return;
@@ -99,11 +82,11 @@ public partial class MainWindow
         // Get the mouse position relative to the current target
         if (_currentTarget is FrameworkElement target)
         {
-            _dropOverlay.Show(target);
+            DropOverlay.Show(target);
 
             Point position = e.GetPosition(target);
-            DropOverlayPosition dropOverlayPosition = _dropOverlay.GetDropPosition(position, target);
-            _dropOverlay.UpdateHighlight(dropOverlayPosition);
+            DropOverlayPosition dropOverlayPosition = DropOverlay.GetDropPosition(position, target);
+            DropOverlay.UpdateHighlight(dropOverlayPosition);
 
             e.Effects = dropOverlayPosition != DropOverlayPosition.Unknown
                 ? DragDropEffects.Move
@@ -115,7 +98,7 @@ public partial class MainWindow
 
     private void Border_DragLeave(object sender, DragEventArgs e)
     {
-        _dropOverlay.Hide();
+        DropOverlay.Hide();
     }
 
     private void Border_Drop(object sender, DragEventArgs e)
@@ -126,10 +109,10 @@ public partial class MainWindow
             if (IsControlPressed(e))
             {
                 var position = e.GetPosition(border);
-                var dropPosition = _dropOverlay.GetDropPosition(position, border);
+                var dropPosition = DropOverlay.GetDropPosition(position, border);
                 if (dropPosition == DropOverlayPosition.Unknown)
                 {
-                    _dropOverlay.Hide();
+                    DropOverlay.Hide();
                     return;
                 }
 
@@ -144,7 +127,7 @@ public partial class MainWindow
         }
 
         _currentTarget = null;
-        _dropOverlay.Hide();
+        DropOverlay.Hide();
     }
 
     private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
