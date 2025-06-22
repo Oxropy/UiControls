@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media;
-using UiControls;
+using UiControls.DynamicGrid;
 
 namespace UiControlsExamples;
 

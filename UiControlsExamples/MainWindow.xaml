@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:uiControls="clr-namespace:UiControls;assembly=UiControls"
+        xmlns:dynamicGrid="clr-namespace:UiControls.DynamicGrid;assembly=UiControls"
         mc:Ignorable="d"
         Title="MainWindow"
         Height="450"
@@ -14,7 +14,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <uiControls:DynamicGrid Grid.Column="0"
+        <dynamicGrid:DynamicGrid Grid.Column="0"
                                 Name="DynamicGrid"
                                 CellChanged="DynamicGrid_OnCellChanged">
             <Grid.RowDefinitions>
@@ -30,7 +30,7 @@
 
             <TextBlock Grid.Column="0"
                        Grid.Row="0"
-                       uiControls:DynamicGrid.IsSelected="True"
+                       dynamicGrid:DynamicGrid.IsSelected="True"
                        Text="Cell 1"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
@@ -87,13 +87,13 @@
                        Background="Magenta" />
             <TextBlock Grid.Column="2"
                        Grid.Row="2"
-                       uiControls:DynamicGrid.IsSelected="True"
+                       dynamicGrid:DynamicGrid.IsSelected="True"
                        Text="Cell 9"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
                        TextAlignment="Center"
                        Background="Bisque" />
-        </uiControls:DynamicGrid>
+        </dynamicGrid:DynamicGrid>
         <TreeView Grid.Column="1"
                   Name="TreeView"/>
     </Grid>

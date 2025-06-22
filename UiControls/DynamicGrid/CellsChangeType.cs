@@ -1,4 +1,4 @@
-﻿namespace UiControls;
+﻿namespace UiControls.DynamicGrid;
 
 public enum CellsChangeType
 {

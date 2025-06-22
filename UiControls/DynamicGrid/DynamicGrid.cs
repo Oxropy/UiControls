@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Point = System.Drawing.Point;
 
-namespace UiControls;
+namespace UiControls.DynamicGrid;
 
 public sealed class DynamicGrid : Grid
 {

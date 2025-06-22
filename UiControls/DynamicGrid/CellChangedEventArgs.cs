@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace UiControls;
+namespace UiControls.DynamicGrid;
 
 public class CellChangedEventArgs : EventArgs
 {
