@@ -14,12 +14,14 @@ public partial class MainWindow
     // how can the style be changed from an implementer
     // add flag to add grid splitter in-between cells
 
+    private readonly Random _random = new();
+    
     public MainWindow()
     {
         InitializeComponent();
         DynamicGrid.GetDefaultCell = () => new Border
         {
-            Background = new SolidColorBrush(Colors.Gray)
+            Background = new SolidColorBrush(Color.FromArgb((byte)_random.Next(0, 255), (byte)_random.Next(0, 255), (byte)_random.Next(0, 255), (byte)_random.Next(0, 255)))
         };
     }
 
