@@ -44,7 +44,39 @@
         <dropOverlay:DropOverlayControl Grid.Column="1" x:Name="DropOverlay"
                                         Width="{Binding ActualWidth, ElementName=TargetGrid}"
                                         Height="{Binding ActualHeight, ElementName=TargetGrid}"
-                                        IsHitTestVisible="False"/>
+                                        IsHitTestVisible="False">
+            <dropOverlay:DropOverlayControl.Templates>
+                <dropOverlay:DropOverlayTemplate Position="Top">
+                    <Image Source="/Images/add_above.png" Height="20" Width="20"/>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Right">
+                    <Image Source="/Images/add_above.png" Height="20" Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="90"/>
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Bottom">
+                    <Image Source="/Images/add_above.png" Height="20" Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="180"/>
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Left">
+                    <Image Source="/Images/add_above.png" Height="20" Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="270"/>
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Center">
+                    <Border Background="#80FF00FF" CornerRadius="5">
+                        <TextBlock Text="Drop Here" HorizontalAlignment="Center"/>
+                    </Border>
+                </dropOverlay:DropOverlayTemplate>
+            </dropOverlay:DropOverlayControl.Templates>
+        </dropOverlay:DropOverlayControl>
     </Grid>
 </Window>
 
