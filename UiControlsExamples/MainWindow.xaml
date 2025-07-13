@@ -4,97 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dynamicGrid="clr-namespace:UiControls.DynamicGrid;assembly=UiControls"
+        xmlns:uiControlsExamples="clr-namespace:UiControlsExamples"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance uiControlsExamples:MainWindowViewModel}"
         Title="MainWindow"
         Height="450"
         Width="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="4*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <dynamicGrid:DynamicGrid Grid.Column="0"
-                                Name="DynamicGrid"
-                                CellChanged="DynamicGrid_OnCellChanged">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0"
-                       Grid.Row="0"
-                       dynamicGrid:DynamicGrid.IsSelected="True"
-                       Text="Cell 1"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Red" />
-            <TextBlock Grid.Column="1"
-                       Grid.Row="0"
-                       Text="Cell 2"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Blue" />
-            <TextBlock Grid.Column="2"
-                       Grid.Row="0"
-                       Text="Cell 3"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Orange" />
-            <TextBlock Grid.Column="0"
-                       Grid.Row="1"
-                       Text="Cell 4"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Green" />
-            <TextBlock Grid.Column="1"
-                       Grid.Row="1"
-                       Text="Cell 5"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Yellow" />
-            <TextBlock Grid.Column="2"
-                       Grid.Row="1"
-                       Text="Cell 6"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Purple" />
-            <TextBlock Grid.Column="0"
-                       Grid.Row="2"
-                       Text="Cell 7"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Cyan" />
-            <TextBlock Grid.Column="1"
-                       Grid.Row="2"
-                       Text="Cell 8"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Magenta" />
-            <TextBlock Grid.Column="2"
-                       Grid.Row="2"
-                       dynamicGrid:DynamicGrid.IsSelected="True"
-                       Text="Cell 9"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       TextAlignment="Center"
-                       Background="Bisque" />
-        </dynamicGrid:DynamicGrid>
-        <TreeView Grid.Column="1"
-                  Name="TreeView"/>
-    </Grid>
+    <dynamicGrid:DynamicGrid Name="DynamicGrid"
+                             MinRows="{Binding DynamicGridManager.MinRows}"
+                             MaxRows="{Binding DynamicGridManager.MaxRows}"
+                             MinColumns="{Binding DynamicGridManager.MinColumns}"
+                             MaxColumns="{Binding DynamicGridManager.MaxColumns}" />
 </Window>
