@@ -1,5 +1,4 @@
 ﻿<Solution>
-  <Project Path="DragDropDemo\DragDropDemo.csproj" Type="Classic C#" />
   <Project Path="UiControlsExamples\UiControlsExamples.csproj" Type="Classic C#" />
   <Project Path="UiControls\UiControls.csproj" Type="Classic C#" />
 </Solution>

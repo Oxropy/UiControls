@@ -4,14 +4,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using UiControls.DropOverlay;
 
-namespace DragDropDemo;
+namespace UiControlsExamples.DragOverlay;
 
-public partial class MainWindow
+public partial class DragOverlayShowcase
 {
     private Point _startPoint;
     private UIElement? _currentTarget;
 
-    public MainWindow()
+    public DragOverlayShowcase()
     {
         InitializeComponent();
         InitializeDragDrop();

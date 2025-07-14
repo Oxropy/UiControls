@@ -2,7 +2,7 @@
 using UiControls;
 using UiControls.DynamicGrid;
 
-namespace UiControlsExamples;
+namespace UiControlsExamples.DynamicGrid;
 
 public class DefaultCellViewModel: ObservableObject, IGridItemHost
 {

@@ -1,4 +1,4 @@
-﻿namespace UiControlsExamples;
+﻿namespace UiControlsExamples.DynamicGrid;
 
 public partial class DynamicGridShowcase
 {
