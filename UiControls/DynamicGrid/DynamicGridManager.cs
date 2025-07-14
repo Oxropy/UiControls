@@ -81,6 +81,8 @@ public sealed class DynamicGridManager : ObservableObject
                 : throw new ArgumentOutOfRangeException(nameof(value), value, "Min columns must be greater than 0");
     } = 1;
 
+    public IReadOnlyList<IGridItemHost> Items => _items.AsReadOnly();
+    
     public void AddItem(IGridItemHost gridItemHost)
     {
         ValidateGridItem(gridItemHost);
@@ -113,7 +115,7 @@ public sealed class DynamicGridManager : ObservableObject
         _items.Sync();
     }
     
-    public void ClearItems()
+    public void ResetItems()
     {
         _items.Clear();
         FillGridGaps();
@@ -122,12 +124,12 @@ public sealed class DynamicGridManager : ObservableObject
     
     private void ValidateGridItem(IGridItemHost gridItemHost)
     {
-        if (gridItemHost.GridItem.Row + 1 < MinRows || gridItemHost.GridItem.Row + gridItemHost.GridItem.RowSpan >= MaxRows)
+        if (gridItemHost.GridItem.Row + 1 < MinRows || gridItemHost.GridItem.Row + gridItemHost.GridItem.RowSpan > MaxRows)
         {
             throw new ArgumentOutOfRangeException(nameof(gridItemHost), "Row is out of bounds");
         }
         
-        if (gridItemHost.GridItem.Column + 1 < MinColumns || gridItemHost.GridItem.Column + gridItemHost.GridItem.ColumnSpan >= MaxColumns)
+        if (gridItemHost.GridItem.Column + 1 < MinColumns || gridItemHost.GridItem.Column + gridItemHost.GridItem.ColumnSpan > MaxColumns)
         {
             throw new ArgumentOutOfRangeException(nameof(gridItemHost), "Column is out of bounds");
         }

@@ -1,13 +1,13 @@
 ﻿namespace UiControlsExamples;
 
-public partial class MainWindow
+public partial class DynamicGridShowcase
 {
-    public MainWindow()
+    public DynamicGridShowcase()
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
+        DataContext = new DynamicGridShowcaseViewModel();
         DynamicGrid.RegisterViewType<ColoredCell, DefaultCellViewModel>();
         DynamicGrid.RegisterViewType<ColoredCell, ColoredCellViewModel>();
-        ((MainWindowViewModel)DataContext).SetDefaultCells();
+        ((DynamicGridShowcaseViewModel)DataContext).SetDefaultCells();
     }
 }

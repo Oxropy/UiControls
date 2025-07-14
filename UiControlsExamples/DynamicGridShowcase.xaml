@@ -1,0 +1,36 @@
+﻿<Window x:Class="UiControlsExamples.DynamicGridShowcase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dynamicGrid="clr-namespace:UiControls.DynamicGrid;assembly=UiControls"
+        xmlns:uiControlsExamples="clr-namespace:UiControlsExamples"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance uiControlsExamples:DynamicGridShowcaseViewModel}"
+        Title="MainWindow"
+        Height="450"
+        Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <StackPanel Grid.Column="0">
+            <Button Content="Reset" Command="{Binding ResetCommand}"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox Text="{Binding XPosition}"/>
+                <TextBox Text="{Binding YPosition}"/>
+                <TextBox Text="{Binding ColorHash}"/>
+            </StackPanel>
+            <Button Content="Add" Command="{Binding AddCommand}"/>
+            <Button Content="Remove" Command="{Binding RemoveCommand}"/>
+        </StackPanel>
+        
+        <dynamicGrid:DynamicGrid Grid.Column="1" Name="DynamicGrid"
+                                 MinRows="{Binding DynamicGridManager.MinRows}"
+                                 MaxRows="{Binding DynamicGridManager.MaxRows}"
+                                 MinColumns="{Binding DynamicGridManager.MinColumns}"
+                                 MaxColumns="{Binding DynamicGridManager.MaxColumns}" />
+    </Grid>
+</Window>
