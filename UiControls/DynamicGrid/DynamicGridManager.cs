@@ -46,55 +46,49 @@ public sealed class DynamicGridManager : ObservableObject
     public int MaxRows
     {
         get;
-        init
-        {
-            if (value > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), "Max rows must be less than or equal to 65535");
-            
-            field = value;
-        }
+        init =>
+            field = value <= ushort.MaxValue
+                ? value
+                : throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "Max rows must be less than or equal to 65535");
     } = 10;
 
     public int MaxColumns
     {
         get;
-        init
-        {
-            if (value > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), "Max columns must be less than or equal to 65535");
-            
-            field = value;
-        }
+        init =>
+            field = value <= ushort.MaxValue
+                ? value
+                : throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "Max columns must be less than or equal to 65535");
     } = 10;
 
     public int MinRows
     {
         get;
-        init
-        {
-            if (value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(value), "Min rows must be greater than 0");
-            
-            field = value;
-        }
+        init =>
+            field = value > 0
+                ? value
+                : throw new ArgumentOutOfRangeException(nameof(value), value, "Min rows must be greater than 0");
     } = 1;
 
     public int MinColumns
     {
         get;
-        init
-        {
-            if (value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(value), "Min columns must be greater than 0");
-            
-            field = value;
-        }
+        init =>
+            field = value > 0
+                ? value
+                : throw new ArgumentOutOfRangeException(nameof(value), value, "Min columns must be greater than 0");
     } = 1;
 
     public void AddItem(IGridItemHost gridItemHost)
     {
         ValidateGridItem(gridItemHost);
-        
+
+        var existentItemAtPosition = _items.FirstOrDefault(i => i.GridItem == gridItemHost.GridItem);
+        if (existentItemAtPosition is not null)
+            _items.Remove(existentItemAtPosition);
+
         _items.Add(gridItemHost);
         FillGridGaps();
         _items.Sync();
@@ -104,6 +98,9 @@ public sealed class DynamicGridManager : ObservableObject
     {
         ValidateGridItems(gridItemHosts);
         
+        foreach (var i in _items.Where(gridItemHosts.Contains).ToList()) 
+            _items.Remove(i);
+        
         _items.AddRange(gridItemHosts);
         FillGridGaps();
         _items.Sync();
@@ -112,6 +109,13 @@ public sealed class DynamicGridManager : ObservableObject
     public void RemoveItem(IGridItemHost gridItemHost)
     {
         _items.Remove(gridItemHost);
+        FillGridGaps();
+        _items.Sync();
+    }
+    
+    public void ClearItems()
+    {
+        _items.Clear();
         FillGridGaps();
         _items.Sync();
     }
