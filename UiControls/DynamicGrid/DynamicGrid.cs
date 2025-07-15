@@ -28,6 +28,8 @@ public sealed class DynamicGrid : Grid
             new FrameworkPropertyMetadata(typeof(DynamicGrid)));
     }
 
+    public event EventHandler<IEnumerable<UIElement>>? ItemsChanged;
+    
     public DynamicGrid()
     {
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -189,14 +191,14 @@ public sealed class DynamicGrid : Grid
             {
                 Header = "Above",
                 Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddRowAboveCommand,
-                CommandParameter = (gridItemHost.GridItem, RowPosition.Above)
+                CommandParameter = gridItemHost.GridItem
             };
             
             var addRowBelowItem = new MenuItem
             {
                 Header = "Below",
                 Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddRowBelowCommand,
-                CommandParameter = (gridItemHost.GridItem, RowPosition.Below)
+                CommandParameter = gridItemHost.GridItem
             };
             
             addRowItem.Items.Add(addRowAboveItem);
@@ -236,14 +238,14 @@ public sealed class DynamicGrid : Grid
             {
                 Header = "Left",
                 Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddColumnToLeftCommand,
-                CommandParameter = (gridItemHost.GridItem, ColumnPosition.ToLeft)
+                CommandParameter = gridItemHost.GridItem
             };
             
             var addColumnBelowItem = new MenuItem
             {
                 Header = "Right",
                 Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddColumnToRightCommand,
-                CommandParameter = (gridItemHost.GridItem, ColumnPosition.ToRight)
+                CommandParameter = gridItemHost.GridItem
             };
             
             addColumnItem.Items.Add(addColumnAboveItem);
@@ -352,6 +354,7 @@ public sealed class DynamicGrid : Grid
         if (items != null)
         {
             UpdateGridItems(items);
+            ItemsChanged?.Invoke(this, items.Select(i => _viewModelViewMapping[i]).ToList());
         }
     }
     

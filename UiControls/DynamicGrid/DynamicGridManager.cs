@@ -19,10 +19,10 @@ public sealed class DynamicGridManager : ObservableObject
         _items.CollectionChanged += OnItemsCollectionChanged;
 
         SelectCommand = new RelayCommand(SelectCell);
-        AddRowAboveCommand = new RelayCommand(AddRow, CanAddRowExecute);
-        AddRowBelowCommand = new RelayCommand(AddRow, CanAddRowExecute);
-        AddColumnToLeftCommand = new RelayCommand(AddColumn, CanAddColumnExecute);
-        AddColumnToRightCommand = new RelayCommand(AddColumn, CanAddColumnExecute);
+        AddRowAboveCommand = new RelayCommand(p => AddRow((p, RowPosition.Above)), CanAddRowExecute);
+        AddRowBelowCommand = new RelayCommand(p => AddRow((p, RowPosition.Below)), CanAddRowExecute);
+        AddColumnToLeftCommand = new RelayCommand(p => AddColumn((p, ColumnPosition.ToLeft)), CanAddColumnExecute);
+        AddColumnToRightCommand = new RelayCommand(p => AddColumn((p, ColumnPosition.ToRight)), CanAddColumnExecute);
         RemoveRowCommand = new RelayCommand(RemoveRow, CanRemoveRowExecute);
         RemoveColumnCommand = new RelayCommand(RemoveColumn, CanRemoveColumnExecute);
         MergeCellsCommand = new RelayCommand(MergeCells, CanMergeCellsExecute);
@@ -391,8 +391,12 @@ public sealed class DynamicGridManager : ObservableObject
     
     private void FillGridGaps()
     {
-        _rowDefinitionsCount = Math.Clamp(_items.Max(i => i.GridItem.Row + i.GridItem.RowSpan), MinRows, MaxRows);
-        _columnDefinitionsCount = Math.Clamp(_items.Max(i => i.GridItem.Column + i.GridItem.ColumnSpan), MinColumns, MaxColumns);
+        _rowDefinitionsCount = _items.Count == 0
+            ? MinRows
+            : Math.Clamp(_items.Max(i => i.GridItem.Row + i.GridItem.RowSpan), MinRows, MaxRows);
+        _columnDefinitionsCount = _items.Count == 0
+            ? MinColumns
+            : Math.Clamp(_items.Max(i => i.GridItem.Column + i.GridItem.ColumnSpan), MinColumns, MaxColumns);
         InsertDefaultCellsInGaps(GetOccupiedPositions());
     }
 

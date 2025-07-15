@@ -1,0 +1,97 @@
+﻿<Window x:Class="UiControlsExamples.DynamicGridDragOverlay.DynamicGridDragOverlayShowcase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:dynamicGrid="clr-namespace:UiControls.DynamicGrid;assembly=UiControls"
+        xmlns:dropOverlay="clr-namespace:UiControls.DropOverlay;assembly=UiControls"
+        xmlns:dynamicGridDragOverlay="clr-namespace:UiControlsExamples.DynamicGridDragOverlay"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance dynamicGridDragOverlay:DynamicGridDragOverlayViewModel}"
+        Title="DynamicGridDragOverlayShowcase"
+        Height="450"
+        Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0"
+                    Margin="5">
+            <Button Content="Reset"
+                    Command="{Binding ResetCommand}" />
+            <StackPanel Orientation="Horizontal">
+                <TextBox Text="{Binding XPosition}" />
+                <TextBox Text="{Binding YPosition}" />
+                <TextBox Text="{Binding ColorHash}" />
+            </StackPanel>
+            <Button Content="Add"
+                    Command="{Binding AddCommand}" />
+            <Button Content="Remove"
+                    Command="{Binding RemoveCommand}" />
+
+            <TreeView x:Name="SourceTreeView">
+                <TreeViewItem Header="#FF0000FF" />
+                <TreeViewItem Header="#00FF00FF" />
+                <TreeViewItem Header="#0000FFFF" />
+            </TreeView>
+        </StackPanel>
+
+        <dynamicGrid:DynamicGrid Grid.Column="1"
+                                 Name="DynamicGrid"
+                                 Margin="5"
+                                 MinRows="{Binding DynamicGridManager.MinRows}"
+                                 MaxRows="{Binding DynamicGridManager.MaxRows}"
+                                 MinColumns="{Binding DynamicGridManager.MinColumns}"
+                                 MaxColumns="{Binding DynamicGridManager.MaxColumns}" />
+
+        <dropOverlay:DropOverlayControl Grid.Column="1"
+                                        x:Name="DropOverlay"
+                                        Width="{Binding ActualWidth, ElementName=DynamicGrid}"
+                                        Height="{Binding ActualHeight, ElementName=DynamicGrid}"
+                                        IsHitTestVisible="False">
+            <dropOverlay:DropOverlayControl.Templates>
+                <dropOverlay:DropOverlayTemplate Position="Top">
+                    <Image Source="/DragOverlay/Images/add_above.png"
+                           Height="20"
+                           Width="20" />
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Right">
+                    <Image Source="/DragOverlay/Images/add_above.png"
+                           Height="20"
+                           Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="90" />
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Bottom">
+                    <Image Source="/DragOverlay/Images/add_above.png"
+                           Height="20"
+                           Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="180" />
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Left">
+                    <Image Source="/DragOverlay/Images/add_above.png"
+                           Height="20"
+                           Width="20">
+                        <Image.LayoutTransform>
+                            <RotateTransform Angle="270" />
+                        </Image.LayoutTransform>
+                    </Image>
+                </dropOverlay:DropOverlayTemplate>
+                <dropOverlay:DropOverlayTemplate Position="Center">
+                    <Border Background="#80FF00FF"
+                            CornerRadius="5">
+                        <TextBlock Text="Drop Here"
+                                   HorizontalAlignment="Center" />
+                    </Border>
+                </dropOverlay:DropOverlayTemplate>
+            </dropOverlay:DropOverlayControl.Templates>
+        </dropOverlay:DropOverlayControl>
+    </Grid>
+</Window>
