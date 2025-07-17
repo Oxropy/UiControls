@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
 
-namespace UiControls.DynamicGrid;
+namespace UiControls.DynamicGrid.ViewModel;
 
 internal sealed class GridItemHostSyncList : IList<IGridItemHost>, INotifyCollectionChanged
 {

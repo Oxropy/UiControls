@@ -2,8 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using UiControls.DynamicGrid.ViewModel;
 
-namespace UiControls.DynamicGrid;
+namespace UiControls.DynamicGrid.View;
 
 public sealed class DynamicGrid : Grid
 {

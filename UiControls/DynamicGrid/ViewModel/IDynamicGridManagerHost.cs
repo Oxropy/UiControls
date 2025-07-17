@@ -1,4 +1,4 @@
-﻿namespace UiControls.DynamicGrid;
+﻿namespace UiControls.DynamicGrid.ViewModel;
 
 public interface IDynamicGridManagerHost
 {

@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:dynamicGrid="clr-namespace:UiControls.DynamicGrid;assembly=UiControls"
         xmlns:dropOverlay="clr-namespace:UiControls.DropOverlay;assembly=UiControls"
         xmlns:dynamicGridDragOverlay="clr-namespace:UiControlsExamples.DynamicGridDragOverlay"
+        xmlns:view="clr-namespace:UiControls.DynamicGrid.View;assembly=UiControls"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance dynamicGridDragOverlay:DynamicGridDragOverlayViewModel}"
         Title="DynamicGridDragOverlayShowcase"
@@ -38,7 +38,7 @@
             </TreeView>
         </StackPanel>
 
-        <dynamicGrid:DynamicGrid Grid.Column="1"
+        <view:DynamicGrid Grid.Column="1"
                                  Name="DynamicGrid"
                                  Margin="5"
                                  MinRows="{Binding DynamicGridManager.MinRows}"

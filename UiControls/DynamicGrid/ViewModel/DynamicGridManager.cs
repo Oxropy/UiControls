@@ -1,7 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.Drawing;
 
-namespace UiControls.DynamicGrid;
+namespace UiControls.DynamicGrid.ViewModel;
 
 public sealed class DynamicGridManager : ObservableObject
 {

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using UiControls.DropOverlay;
-using UiControls.DynamicGrid;
+using UiControls.DynamicGrid.ViewModel;
 using UiControlsExamples.DynamicGrid;
 
 namespace UiControlsExamples.DynamicGridDragOverlay;

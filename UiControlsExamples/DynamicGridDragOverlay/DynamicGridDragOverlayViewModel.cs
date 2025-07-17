@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
 using UiControls;
-using UiControls.DynamicGrid;
+using UiControls.DynamicGrid.ViewModel;
 using UiControlsExamples.DynamicGrid;
 
 namespace UiControlsExamples.DynamicGridDragOverlay;
