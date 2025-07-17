@@ -23,6 +23,7 @@ public partial class DynamicGridDragOverlayShowcase
         DynamicGrid.RegisterViewType<ColoredCell, DefaultCellViewModel>();
         DynamicGrid.RegisterViewType<ColoredCell, ColoredCellViewModel>();
         DynamicGrid.ItemsChanged += DynamicGridOnItemsChanged;
+        _viewModel.DynamicGridManager.ResetItems();
     }
 
     private void DynamicGridOnItemsChanged(object? sender, IEnumerable<UIElement> e)

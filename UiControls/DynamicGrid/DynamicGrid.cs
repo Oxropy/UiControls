@@ -120,7 +120,7 @@ public sealed class DynamicGrid : Grid
         } 
         else if (rowDefinitionsCount < RowDefinitions.Count)
         {
-            RowDefinitions.RemoveRange(RowDefinitions.Count - 1, RowDefinitions.Count - rowDefinitionsCount);
+            RowDefinitions.RemoveRange(rowDefinitionsCount, RowDefinitions.Count - 1);
         }
     }
 
@@ -139,7 +139,7 @@ public sealed class DynamicGrid : Grid
         } 
         else if (columnDefinitionsCount < ColumnDefinitions.Count)
         {
-            ColumnDefinitions.RemoveRange(ColumnDefinitions.Count - 1, ColumnDefinitions.Count - columnDefinitionsCount);
+            ColumnDefinitions.RemoveRange(columnDefinitionsCount, ColumnDefinitions.Count - 1);
         }
     }
 

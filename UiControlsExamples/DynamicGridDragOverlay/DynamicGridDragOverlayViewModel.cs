@@ -12,8 +12,6 @@ public class DynamicGridDragOverlayViewModel : ObservableObject, IDynamicGridMan
         AddCommand = new RelayCommand(Add, CanAddRemoveExecute);
         RemoveCommand = new RelayCommand(Remove, CanAddRemoveExecute);
         ResetCommand = new RelayCommand(Reset);
-        
-        DynamicGridManager.ResetItems();
     }
 
     private bool CanAddRemoveExecute(object? arg)
