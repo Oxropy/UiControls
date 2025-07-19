@@ -1,21 +1,22 @@
 ﻿using System.Collections.Specialized;
 using System.Drawing;
+using UiControls.DynamicGrid.View;
+using UiControls.DynamicGrid.ViewModel.ContextMenu;
 
 namespace UiControls.DynamicGrid.ViewModel;
 
 public sealed class DynamicGridManager : ObservableObject
 {
     private readonly Func<(int row, int column, int rowSpan, int columnSpan), IGridItemHost> _getDefaultCell;
-
+    private readonly ContextMenuBuilder _contextMenuBuilder;
     private readonly GridItemHostSyncList _items = [];
-    private int _rowDefinitionsCount = 1;
-    private int _columnDefinitionsCount = 1;
-    
+
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     
     public DynamicGridManager(Func<(int row, int column, int rowSpan, int columnSpan), IGridItemHost> getDefaultCell)
     {
         _getDefaultCell = getDefaultCell;
+        _contextMenuBuilder = new ContextMenuBuilder(this);
         _items.CollectionChanged += OnItemsCollectionChanged;
 
         SelectCommand = new RelayCommand(SelectCell);
@@ -29,8 +30,9 @@ public sealed class DynamicGridManager : ObservableObject
         SplitMergeCommand = new RelayCommand(SplitMerge, CanSplitMergeExecute);
         SplitCellVerticalCommand = new RelayCommand(SplitCellVertical, CanSplitCellVerticalExecute);
         SplitCellHorizontalCommand = new RelayCommand(SplitCellHorizontal, CanSplitCellHorizontalExecute);
+        CreateContextMenuCommand = new RelayCommand(CreateContextMenu);
     }
-    
+
     public RelayCommand SelectCommand { get; }
     public RelayCommand AddRowAboveCommand { get; }
     public RelayCommand AddRowBelowCommand { get; }
@@ -42,7 +44,11 @@ public sealed class DynamicGridManager : ObservableObject
     public RelayCommand SplitMergeCommand { get; }
     public RelayCommand SplitCellVerticalCommand { get; }
     public RelayCommand SplitCellHorizontalCommand { get; }
+    public RelayCommand CreateContextMenuCommand { get; }
 
+    public int RowDefinitionsCount { get; private set; } = 1;
+    public int ColumnDefinitionsCount { get; private set; } = 1;
+    
     public int MaxRows
     {
         get;
@@ -82,6 +88,12 @@ public sealed class DynamicGridManager : ObservableObject
     } = 1;
 
     public IReadOnlyList<IGridItemHost> Items => _items.AsReadOnly();
+
+    public ContextMenuStart<IGridItemHost>? ContextMenuStart
+    {
+        get;
+        private set => SetField(ref field, value);
+    }
     
     public void AddItem(IGridItemHost gridItemHost)
     {
@@ -143,13 +155,13 @@ public sealed class DynamicGridManager : ObservableObject
         }
     }
     
-    private bool IsInvalidRowConfiguration => _rowDefinitionsCount != MinRows || MinRows != MaxRows;
-    private bool IsInvalidColumnConfiguration => _columnDefinitionsCount != MinColumns || MinColumns != MaxColumns;
+    private bool IsInvalidRowConfiguration => RowDefinitionsCount != MinRows || MinRows != MaxRows;
+    private bool IsInvalidColumnConfiguration => ColumnDefinitionsCount != MinColumns || MinColumns != MaxColumns;
 
-    private bool CanAddRowExecute(object? parameter) => IsInvalidRowConfiguration && _rowDefinitionsCount < MaxRows;
-    private bool CanAddColumnExecute(object? parameter) => IsInvalidColumnConfiguration && _columnDefinitionsCount < MaxColumns;
-    private bool CanRemoveRowExecute(object? parameter) => IsInvalidRowConfiguration && _rowDefinitionsCount > MinRows;
-    private bool CanRemoveColumnExecute(object? parameter) => IsInvalidColumnConfiguration && _columnDefinitionsCount > MinColumns;
+    private bool CanAddRowExecute(object? parameter) => IsInvalidRowConfiguration && RowDefinitionsCount < MaxRows;
+    private bool CanAddColumnExecute(object? parameter) => IsInvalidColumnConfiguration && ColumnDefinitionsCount < MaxColumns;
+    private bool CanRemoveRowExecute(object? parameter) => IsInvalidRowConfiguration && RowDefinitionsCount > MinRows;
+    private bool CanRemoveColumnExecute(object? parameter) => IsInvalidColumnConfiguration && ColumnDefinitionsCount > MinColumns;
     private bool CanMergeCellsExecute(object? parameter) => _items.Count(i => i.GridItem.IsSelected) > 1;
     private static bool CanSplitMergeExecute(object? parameter) => parameter is GridItem item && (item.ColumnSpan > 1 || item.RowSpan > 1);
     private static bool CanSplitCellVerticalExecute(object? parameter) => parameter is GridItem { ColumnSpan: > 1 };
@@ -177,7 +189,7 @@ public sealed class DynamicGridManager : ObservableObject
             RowPosition.Above => gridItem.Row,
             RowPosition.Below => gridItem.Row + 1,
             RowPosition.Top => 0,
-            RowPosition.Bottom => _rowDefinitionsCount,
+            RowPosition.Bottom => RowDefinitionsCount,
             _ => throw new ArgumentOutOfRangeException(nameof(position))
         };
         
@@ -187,11 +199,12 @@ public sealed class DynamicGridManager : ObservableObject
             item.GridItem.Row++;
         }
         
-        for (int col = 0; col < _columnDefinitionsCount; col++)
+        for (int col = 0; col < ColumnDefinitionsCount; col++)
         {
             _items.Add(_getDefaultCell((row, col, 1, 1)));
         }
-        
+
+        RowDefinitionsCount++;
         _items.Sync();
     }
 
@@ -209,7 +222,8 @@ public sealed class DynamicGridManager : ObservableObject
         {
             item.GridItem.Row--;
         }
-        
+
+        RowDefinitionsCount--;
         _items.Sync();
     }
 
@@ -225,7 +239,7 @@ public sealed class DynamicGridManager : ObservableObject
             ColumnPosition.ToLeft => gridItem.Column,
             ColumnPosition.ToRight => gridItem.Column + 1,
             ColumnPosition.Left => 0,
-            ColumnPosition.Right => _columnDefinitionsCount,
+            ColumnPosition.Right => ColumnDefinitionsCount,
             _ => throw new ArgumentOutOfRangeException(nameof(position))
         };
         
@@ -235,11 +249,12 @@ public sealed class DynamicGridManager : ObservableObject
             item.GridItem.Column++;
         }
 
-        for (int row = 0; row < _rowDefinitionsCount; row++)
+        for (int row = 0; row < RowDefinitionsCount; row++)
         {
             _items.Add(_getDefaultCell((row, column, 1, 1)));
         }
-        
+
+        ColumnDefinitionsCount++;
         _items.Sync();
     }
 
@@ -257,7 +272,8 @@ public sealed class DynamicGridManager : ObservableObject
         {
             item.GridItem.Column--;
         }
-        
+
+        ColumnDefinitionsCount--;
         _items.Sync();
     }
 
@@ -389,15 +405,33 @@ public sealed class DynamicGridManager : ObservableObject
         _items.Sync();
     }
     
+    private void CreateContextMenu(object? obj)
+    {
+        if (obj is not GridItemRoutedEventArgs eventArgs)
+            return;
+        
+        ContextMenuStart = _contextMenuBuilder.Build(eventArgs.GridItemHost);
+    }
+    
     private void FillGridGaps()
     {
-        _rowDefinitionsCount = _items.Count == 0
+        UpdateRowDefinitionCount();
+        UpdateColumnDefinitionCount();
+        InsertDefaultCellsInGaps(GetOccupiedPositions());
+    }
+
+    private void UpdateRowDefinitionCount()
+    {
+        RowDefinitionsCount = _items.Count == 0
             ? MinRows
             : Math.Clamp(_items.Max(i => i.GridItem.Row + i.GridItem.RowSpan), MinRows, MaxRows);
-        _columnDefinitionsCount = _items.Count == 0
+    }
+
+    private void UpdateColumnDefinitionCount()
+    {
+        ColumnDefinitionsCount = _items.Count == 0
             ? MinColumns
             : Math.Clamp(_items.Max(i => i.GridItem.Column + i.GridItem.ColumnSpan), MinColumns, MaxColumns);
-        InsertDefaultCellsInGaps(GetOccupiedPositions());
     }
 
     private HashSet<int> GetOccupiedPositions()
@@ -424,9 +458,9 @@ public sealed class DynamicGridManager : ObservableObject
     private void InsertDefaultCellsInGaps(HashSet<int> occupiedPositions)
     {
         // Find and collect gaps
-        for (int row = 0; row < _rowDefinitionsCount; row++)
+        for (int row = 0; row < RowDefinitionsCount; row++)
         {
-            for (int column = 0; column < _columnDefinitionsCount; column++)
+            for (int column = 0; column < ColumnDefinitionsCount; column++)
             {
                 if (!occupiedPositions.Contains((row << 16) | column))
                 {

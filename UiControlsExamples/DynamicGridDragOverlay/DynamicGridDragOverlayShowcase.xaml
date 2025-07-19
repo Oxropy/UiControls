@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:dropOverlay="clr-namespace:UiControls.DropOverlay;assembly=UiControls"
         xmlns:dynamicGridDragOverlay="clr-namespace:UiControlsExamples.DynamicGridDragOverlay"
         xmlns:view="clr-namespace:UiControls.DynamicGrid.View;assembly=UiControls"
@@ -41,10 +42,14 @@
         <view:DynamicGrid Grid.Column="1"
                                  Name="DynamicGrid"
                                  Margin="5"
-                                 MinRows="{Binding DynamicGridManager.MinRows}"
-                                 MaxRows="{Binding DynamicGridManager.MaxRows}"
-                                 MinColumns="{Binding DynamicGridManager.MinColumns}"
-                                 MaxColumns="{Binding DynamicGridManager.MaxColumns}" />
+                                 ContextMenuItem="{Binding DynamicGridManager.ContextMenuStart}">
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="OpenContextMenu">
+                    <b:InvokeCommandAction Command="{Binding DynamicGridManager.CreateContextMenuCommand}"
+                                           PassEventArgsToCommand="True"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+        </view:DynamicGrid>
 
         <dropOverlay:DropOverlayControl Grid.Column="1"
                                         x:Name="DropOverlay"

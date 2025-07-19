@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using UiControls.DynamicGrid.ViewModel;
+using UiControls.DynamicGrid.ViewModel.ContextMenu;
 
 namespace UiControls.DynamicGrid.View;
 
@@ -11,22 +12,25 @@ public sealed class DynamicGrid : Grid
     private readonly Dictionary<Type, Type> _viewRegistry = new();
     private readonly Dictionary<IGridItemHost, FrameworkElement> _viewModelViewMapping = new();
     
-    internal static readonly DependencyProperty MinRowsProperty = DependencyProperty.Register(
-        nameof(MinRows), typeof(int), typeof(DynamicGrid), new PropertyMetadata(1), IsIntValueGreaterThanZero);
+    public static readonly DependencyProperty ContextMenuItemProperty = DependencyProperty.Register(
+        nameof(ContextMenuItem), typeof(ContextMenuStart<IGridItemHost>), typeof(DynamicGrid), new PropertyMetadata(null, UpdateContextMenu));
 
-    internal static readonly DependencyProperty MinColumnsProperty = DependencyProperty.Register(
-        nameof(MinColumns), typeof(int), typeof(DynamicGrid), new PropertyMetadata(1), IsIntValueGreaterThanZero);
-
-    internal static readonly DependencyProperty MaxRowsProperty = DependencyProperty.Register(
-        nameof(MaxRows), typeof(int), typeof(DynamicGrid), new PropertyMetadata(10), IsIntValueGreaterThanZero);
-
-    internal static readonly DependencyProperty MaxColumnsProperty = DependencyProperty.Register(
-        nameof(MaxColumns), typeof(int), typeof(DynamicGrid), new PropertyMetadata(10), IsIntValueGreaterThanZero);
-
+    public static readonly RoutedEvent OpenContextMenuEvent = EventManager.RegisterRoutedEvent(
+        nameof(OpenContextMenu), 
+        RoutingStrategy.Bubble, 
+        typeof(RoutedEventHandler), 
+        typeof(DynamicGrid));
+    
     static DynamicGrid()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid),
             new FrameworkPropertyMetadata(typeof(DynamicGrid)));
+    }
+
+    public event RoutedEventHandler OpenContextMenu
+    {
+        add => AddHandler(OpenContextMenuEvent, value);
+        remove => RemoveHandler(OpenContextMenuEvent, value);
     }
 
     public event EventHandler<IEnumerable<UIElement>>? ItemsChanged;
@@ -40,29 +44,11 @@ public sealed class DynamicGrid : Grid
         DataContextChanged += OnDataContextChanged;
         Unloaded += OnUnloaded;
     }
-
-    public int MinRows
+    
+    public ContextMenuStart<IGridItemHost>? ContextMenuItem
     {
-        get => (int)GetValue(MinRowsProperty);
-        set => SetValue(MinRowsProperty, value);
-    }
-
-    public int MinColumns
-    {
-        get => (int)GetValue(MinColumnsProperty);
-        set => SetValue(MinColumnsProperty, value);
-    }
-
-    public int MaxRows
-    {
-        get => (int)GetValue(MaxRowsProperty);
-        set => SetValue(MaxRowsProperty, value);
-    }
-
-    public int MaxColumns
-    {
-        get => (int)GetValue(MaxColumnsProperty);
-        set => SetValue(MaxColumnsProperty, value);
+        get => (ContextMenuStart<IGridItemHost>)GetValue(ContextMenuItemProperty);
+        set => SetValue(ContextMenuItemProperty, value);
     }
 
     public void RegisterViewType<TView, TViewModel>() where TView : FrameworkElement where TViewModel : IGridItemHost
@@ -87,7 +73,7 @@ public sealed class DynamicGrid : Grid
         _viewModelViewMapping[viewModel] = view;
         return view;
     }
-
+    
     private void UpdateGridItems(IList<IGridItemHost> items)
     {
         Children.Clear();
@@ -121,7 +107,7 @@ public sealed class DynamicGrid : Grid
         } 
         else if (rowDefinitionsCount < RowDefinitions.Count)
         {
-            RowDefinitions.RemoveRange(rowDefinitionsCount, RowDefinitions.Count - 1);
+            RowDefinitions.RemoveRange(rowDefinitionsCount, RowDefinitions.Count - rowDefinitionsCount);
         }
     }
 
@@ -140,199 +126,71 @@ public sealed class DynamicGrid : Grid
         } 
         else if (columnDefinitionsCount < ColumnDefinitions.Count)
         {
-            ColumnDefinitions.RemoveRange(columnDefinitionsCount, ColumnDefinitions.Count - 1);
+            ColumnDefinitions.RemoveRange(columnDefinitionsCount, ColumnDefinitions.Count - columnDefinitionsCount);
         }
     }
-
-    private ContextMenu AssignContextMenu(UIElement element)
+    
+    private static void UpdateContextMenu(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        if (d is not DynamicGrid dynamicGrid 
+            || e.NewValue is not ContextMenuStart<IGridItemHost> contextMenuStart 
+            || !dynamicGrid._viewModelViewMapping.TryGetValue(contextMenuStart.ViewModel, out var view))
+            return;
+
         var contextMenu = new ContextMenu();
-        AddSelectMenuItem(element, contextMenu);
-        AddRowMenuItems(contextMenu, element);
-        AddColumnMenuItems(contextMenu, element);
-        AddMergeMenuItem(contextMenu, element);
-        AddSplitMenuItem(contextMenu, element);
+        foreach (var item in contextMenuStart.Items)
+        {
+            if (item is IIsVisible { IsVisible: false })
+                continue;
 
-        return contextMenu;
+            MenuItem menuItem = CreateMenuItem(item);
+            contextMenu.Items.Add(menuItem);
+        }
+            
+        view.ContextMenu = contextMenu;
+        view.ContextMenu.IsOpen = true;
     }
 
-    private void AddSelectMenuItem(UIElement element, ContextMenu contextMenu)
+    private static MenuItem CreateMenuItem(IContextMenu item)
     {
-        if (element is not FrameworkElement { DataContext: IGridItemHost gridItemHost })
+        return item switch
         {
-            return;
-        }
-
-        var selectItem = new MenuItem
-        {
-            Header = gridItemHost.GridItem.IsSelected ? "Unselect" : "Select",
-            Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.SelectCommand,
-            CommandParameter = gridItemHost.GridItem
+            ContextMenuItem i => CreateMenuItem(i),
+            ContextMenuList l => CreateMenuItem(l),
+            _ => throw new InvalidOperationException($"Unknown item type {item.GetType().Name}")
         };
-        
-        contextMenu.Items.Add(selectItem);
     }
 
-    private void AddRowMenuItems(ContextMenu contextMenu, UIElement element)
+    private static MenuItem CreateMenuItem(ContextMenuItem item)
     {
-        if (RowDefinitions.Count == MinRows && MinRows == MaxRows)
+        return new MenuItem
         {
-            return;
-        }
-        
-        if (element is not FrameworkElement { DataContext: IGridItemHost gridItemHost })
-        {
-            return;
-        }
-
-        if (RowDefinitions.Count < MaxRows)
-        {
-            var addRowItem = new MenuItem { Header = "Add Row" };
-            var addRowAboveItem = new MenuItem
-            {
-                Header = "Above",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddRowAboveCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            var addRowBelowItem = new MenuItem
-            {
-                Header = "Below",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddRowBelowCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            addRowItem.Items.Add(addRowAboveItem);
-            addRowItem.Items.Add(addRowBelowItem);
-            contextMenu.Items.Add(addRowItem);
-        }
-
-        if (RowDefinitions.Count > MinRows)
-        {
-            var removeRowItem = new MenuItem
-            {
-                Header = "Remove Row",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.RemoveRowCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            contextMenu.Items.Add(removeRowItem);
-        }
-    }
-
-    private void AddColumnMenuItems(ContextMenu contextMenu, UIElement element)
-    {
-        if (ColumnDefinitions.Count == MinColumns && MinColumns == MaxColumns)
-        {
-            return;
-        }
-
-        if (element is not FrameworkElement { DataContext: IGridItemHost gridItemHost })
-        {
-            return;
-        }
-        
-        if (ColumnDefinitions.Count < MaxColumns)
-        {
-            var addColumnItem = new MenuItem { Header = "Add Column" };
-            var addColumnAboveItem = new MenuItem
-            {
-                Header = "Left",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddColumnToLeftCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            var addColumnBelowItem = new MenuItem
-            {
-                Header = "Right",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.AddColumnToRightCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            addColumnItem.Items.Add(addColumnAboveItem);
-            addColumnItem.Items.Add(addColumnBelowItem);
-            contextMenu.Items.Add(addColumnItem);
-        }
-
-        if (ColumnDefinitions.Count > MinColumns)
-        {
-            var removeColumnItem = new MenuItem
-            {
-                Header = "Remove Column",
-                Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.RemoveColumnCommand,
-                CommandParameter = gridItemHost.GridItem
-            };
-            
-            contextMenu.Items.Add(removeColumnItem);
-        }
-    }
-
-    private void AddMergeMenuItem(ContextMenu contextMenu, UIElement element)
-    {
-        if (element is not FrameworkElement { DataContext: IGridItemHost gridItemHost })
-        {
-            return;
-        }
-        
-        var mergeItem = new MenuItem
-        {
-            Header = "Merge selected Cells",
-            Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.MergeCellsCommand,
-            CommandParameter = gridItemHost.GridItem
+            Header = item.Header,
+            Command = item.Command,
+            CommandParameter = item.CommandParameter
         };
-        
-        contextMenu.Items.Add(mergeItem);
     }
-
-    private void AddSplitMenuItem(ContextMenu contextMenu, UIElement element)
+    
+    private static MenuItem CreateMenuItem(ContextMenuList item)
     {
-        if (element is not FrameworkElement { DataContext: IGridItemHost gridItemHost })
+        var menuItem = new MenuItem
         {
-            return;
-        }
-
-        var splitItem = new MenuItem { Header = "Split Cell" };
-        var splitMerge = new MenuItem
-        {
-            Header = "Split Merge",
-            Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.SplitMergeCommand,
-            CommandParameter = gridItemHost.GridItem
+            Header = item.Header,
         };
 
-        splitItem.Items.Add(splitMerge);
-
-        var splitHorizontalItem = new MenuItem
+        foreach (var i in item.Items.Select(CreateMenuItem))
         {
-            Header = "Split Horizontal",
-            Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.SplitCellHorizontalCommand,
-            CommandParameter = gridItemHost.GridItem
-        };
-
-        splitItem.Items.Add(splitHorizontalItem);
-
-        var splitVerticalItem = new MenuItem
-        {
-            Header = "Split Vertical",
-            Command = ((IDynamicGridManagerHost)DataContext).DynamicGridManager.SplitCellVerticalCommand,
-            CommandParameter = gridItemHost.GridItem
-        };
-
-        splitItem.Items.Add(splitVerticalItem);
-
-        contextMenu.Items.Add(splitItem);
-    }
-
-    private static bool IsIntValueGreaterThanZero(object value)
-    {
-        return (int)value > 0;
+            menuItem.Items.Add(i);
+        }
+        
+        return menuItem;
     }
     
     private void OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.OriginalSource is FrameworkElement clickedElement)
+        if (e.OriginalSource is FrameworkElement { DataContext: IGridItemHost gridItemHost })
         {
-            clickedElement.ContextMenu = AssignContextMenu(clickedElement);
-            clickedElement.ContextMenu.IsOpen = true;
+            RaiseEvent(new GridItemRoutedEventArgs(OpenContextMenuEvent, gridItemHost));
         }
     }
     
