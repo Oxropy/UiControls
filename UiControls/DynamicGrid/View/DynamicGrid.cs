@@ -11,16 +11,16 @@ public sealed class DynamicGrid : Grid
 {
     private readonly Dictionary<Type, Type> _viewRegistry = new();
     private readonly Dictionary<IGridItemHost, FrameworkElement> _viewModelViewMapping = new();
-    
-    public static readonly DependencyProperty ContextMenuItemProperty = DependencyProperty.Register(
-        nameof(ContextMenuItem), typeof(ContextMenuStart<IGridItemHost>), typeof(DynamicGrid), new PropertyMetadata(null, UpdateContextMenu));
 
-    public static readonly RoutedEvent OpenContextMenuEvent = EventManager.RegisterRoutedEvent(
+    private static readonly RoutedEvent OpenContextMenuEvent = EventManager.RegisterRoutedEvent(
         nameof(OpenContextMenu), 
         RoutingStrategy.Bubble, 
         typeof(RoutedEventHandler), 
         typeof(DynamicGrid));
-    
+
+    public static readonly DependencyProperty ContextMenuItemProperty = DependencyProperty.Register(
+        nameof(ContextMenuItem), typeof(ContextMenuStart<IGridItemHost>), typeof(DynamicGrid), new PropertyMetadata(null, UpdateContextMenu));
+
     static DynamicGrid()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DynamicGrid),
