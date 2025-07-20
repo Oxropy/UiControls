@@ -1,6 +1,4 @@
-﻿using System.Windows.Input;
-
-namespace UiControls.DynamicGrid.ViewModel.ContextMenu;
+﻿namespace UiControls.DynamicGrid.ViewModel.ContextMenu;
 
 public sealed record ContextMenuItem : ContextMenuBase, IIsVisible
 {

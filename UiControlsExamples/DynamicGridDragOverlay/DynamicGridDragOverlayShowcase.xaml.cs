@@ -115,67 +115,74 @@ public partial class DynamicGridDragOverlayShowcase
 
     private void Cell_Drop(object sender, DragEventArgs e)
     {
-        if (sender is ColoredCell { DataContext: IGridItemHost gridItemHost } coloredCell
-            && e.Data.GetData(DataFormats.Text) is string draggedText)
+        if (sender is not ColoredCell { DataContext: IGridItemHost gridItemHost } coloredCell
+            || e.Data.GetData(DataFormats.Text) is not string draggedText)
         {
-            DropOverlayPosition dropPosition = DropOverlayPosition.Center;
-            if (IsControlPressed(e))
-            {
-                var position = e.GetPosition(coloredCell);
-                dropPosition = DropOverlay.GetDropPosition(position, coloredCell);
-            }
-            
-            GridItem? gridItem;
-            switch (dropPosition)
-            {
-                case DropOverlayPosition.Unknown:
-                    DropOverlay.Hide();
-                    return;
-                case DropOverlayPosition.Top:
-                    _viewModel.DynamicGridManager.AddRowAboveCommand.Execute(gridItemHost.GridItem);
-                    gridItem = gridItemHost.GridItem with
-                    {
-                        Row = gridItemHost.GridItem.Row - 1, 
-                        RowSpan = 1, 
-                        ColumnSpan = 1
-                    };
-                    break;
-                case DropOverlayPosition.Right:
-                    _viewModel.DynamicGridManager.AddColumnToRightCommand.Execute(gridItemHost.GridItem);
-                    gridItem = gridItemHost.GridItem with
-                    {
-                        Column = gridItemHost.GridItem.Column + 1, 
-                        RowSpan = 1,
-                        ColumnSpan = 1
-                    };
-                    break;
-                case DropOverlayPosition.Bottom:
-                    _viewModel.DynamicGridManager.AddRowBelowCommand.Execute(gridItemHost.GridItem);
-                    gridItem = gridItemHost.GridItem with
-                    {
-                        Row = gridItemHost.GridItem.Row + 1,
-                        RowSpan = 1, 
-                        ColumnSpan = 1
-                    };
-                    break;
-                case DropOverlayPosition.Left:
-                    _viewModel.DynamicGridManager.AddColumnToLeftCommand.Execute(gridItemHost.GridItem);
-                    gridItem = gridItemHost.GridItem with
-                    {
-                        Column = gridItemHost.GridItem.Column - 1, 
-                        RowSpan = 1, 
-                        ColumnSpan = 1
-                    };
-                    break;
-                case DropOverlayPosition.Center:
-                    gridItem = gridItemHost.GridItem with { };
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(dropPosition));
-            }
-
-            _viewModel.DynamicGridManager.AddItem(new ColoredCellViewModel {Brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(draggedText)), GridItem = gridItem});
+            _currentTarget = null;
+            DropOverlay.Hide();
+            return;
         }
+
+        DropOverlayPosition dropPosition = DropOverlayPosition.Center;
+        if (IsControlPressed(e))
+        {
+            var position = e.GetPosition(coloredCell);
+            dropPosition = DropOverlay.GetDropPosition(position, coloredCell);
+        }
+
+        GridItem? gridItem;
+        switch (dropPosition)
+        {
+            case DropOverlayPosition.Unknown:
+                DropOverlay.Hide();
+                return;
+            case DropOverlayPosition.Top:
+                _viewModel.DynamicGridManager.AddRowAboveCommand.Execute(gridItemHost.GridItem);
+                gridItem = gridItemHost.GridItem with
+                {
+                    Row = gridItemHost.GridItem.Row - 1,
+                    RowSpan = 1,
+                    ColumnSpan = 1
+                };
+                break;
+            case DropOverlayPosition.Right:
+                _viewModel.DynamicGridManager.AddColumnToRightCommand.Execute(gridItemHost.GridItem);
+                gridItem = gridItemHost.GridItem with
+                {
+                    Column = gridItemHost.GridItem.Column + 1,
+                    RowSpan = 1,
+                    ColumnSpan = 1
+                };
+                break;
+            case DropOverlayPosition.Bottom:
+                _viewModel.DynamicGridManager.AddRowBelowCommand.Execute(gridItemHost.GridItem);
+                gridItem = gridItemHost.GridItem with
+                {
+                    Row = gridItemHost.GridItem.Row + 1,
+                    RowSpan = 1,
+                    ColumnSpan = 1
+                };
+                break;
+            case DropOverlayPosition.Left:
+                _viewModel.DynamicGridManager.AddColumnToLeftCommand.Execute(gridItemHost.GridItem);
+                gridItem = gridItemHost.GridItem with
+                {
+                    Column = gridItemHost.GridItem.Column - 1,
+                    RowSpan = 1,
+                    ColumnSpan = 1
+                };
+                break;
+            case DropOverlayPosition.Center:
+                gridItem = gridItemHost.GridItem with { };
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(dropPosition));
+        }
+
+        _viewModel.DynamicGridManager.AddItem(new ColoredCellViewModel
+        {
+            Brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(draggedText)), GridItem = gridItem
+        });
 
         _currentTarget = null;
         DropOverlay.Hide();
