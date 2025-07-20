@@ -24,14 +24,6 @@ internal sealed class GridItemHostSyncList : IList<IGridItemHost>, INotifyCollec
     public bool Remove(IGridItemHost item) => _items.Remove(item);
     public void RemoveAt(int index) => _items.RemoveAt(index);
     IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
-    
-    public void RemoveRange(params IList<IGridItemHost> items)
-    {
-        foreach (IGridItemHost item in items)
-        {
-            _items.Remove(item);
-        }
-    }
 
     public void Sync()
     {

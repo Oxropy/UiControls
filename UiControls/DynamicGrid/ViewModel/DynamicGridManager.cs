@@ -215,8 +215,23 @@ public sealed class DynamicGridManager : ObservableObject
             return;
         }
 
-        _items.RemoveRange(_items.Where(i => i.GridItem.Row == gridItem.Row).ToList());
-
+        foreach (var item in _items.Where(i => i.GridItem.Row < gridItem.Row && i.GridItem.Row + i.GridItem.RowSpan > gridItem.Row))
+        {
+            item.GridItem.RowSpan--;
+        }
+        
+        foreach (var item in _items.Where(i => i.GridItem.Row == gridItem.Row).ToList())
+        {
+            if (item.GridItem.RowSpan == 1)
+            {
+                _items.Remove(item);
+            }
+            else
+            {
+                item.GridItem.RowSpan--;
+            }
+        }
+        
         // Shift remaining items up
         foreach (var item in _items.Where(i => i.GridItem.Row > gridItem.Row))
         {
@@ -265,8 +280,23 @@ public sealed class DynamicGridManager : ObservableObject
             return;
         }
         
-        _items.RemoveRange(_items.Where(i => i.GridItem.Column == gridItem.Column).ToList());
-
+        foreach (var item in _items.Where(i => i.GridItem.Column < gridItem.Column && i.GridItem.Column + i.GridItem.ColumnSpan > gridItem.Column))
+        {
+            item.GridItem.ColumnSpan--;
+        }
+        
+        foreach (var item in _items.Where(i => i.GridItem.Column == gridItem.Column).ToList())
+        {
+            if (item.GridItem.ColumnSpan == 1)
+            {
+                _items.Remove(item);
+            }
+            else
+            {
+                item.GridItem.ColumnSpan--;
+            }
+        }
+        
         // Shift remaining items left
         foreach (var item in _items.Where(i => i.GridItem.Column > gridItem.Column))
         {
