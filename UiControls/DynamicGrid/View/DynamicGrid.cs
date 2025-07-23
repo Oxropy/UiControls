@@ -90,7 +90,22 @@ public sealed class DynamicGrid : Grid
             SetColumnSpan(element, item.GridItem.ColumnSpan);
             Children.Add(element);
         }
+        
+        CleanupViewModelViewMapping(items);
     }
+    
+    private void CleanupViewModelViewMapping(IList<IGridItemHost> items)
+    {
+        var keysToRemove = _viewModelViewMapping.Keys
+            .Where(key => !items.Contains(key))
+            .ToList();
+
+        foreach (var key in keysToRemove)
+        {
+            _viewModelViewMapping.Remove(key);
+        }
+    }
+
 
     private void UpdateRowDefinitions(IList<IGridItemHost> items)
     {
