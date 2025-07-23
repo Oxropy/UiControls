@@ -162,7 +162,7 @@ public sealed class DynamicGridManager : ObservableObject
     private bool CanAddColumnExecute(object? parameter) => IsInvalidColumnConfiguration && ColumnDefinitionsCount < MaxColumns;
     private bool CanRemoveRowExecute(object? parameter) => IsInvalidRowConfiguration && RowDefinitionsCount > MinRows;
     private bool CanRemoveColumnExecute(object? parameter) => IsInvalidColumnConfiguration && ColumnDefinitionsCount > MinColumns;
-    private bool CanMergeCellsExecute(object? parameter) => _items.Count(i => i.GridItem.IsSelected) > 1;
+    private bool CanMergeCellsExecute(object? parameter) => _items.Count(i => i.GridItem.IsSelected) > 1 && !DoesSelectionIntersectWithSpans();
     private static bool CanSplitMergeExecute(object? parameter) => parameter is GridItem item && (item.ColumnSpan > 1 || item.RowSpan > 1);
     private static bool CanSplitCellVerticalExecute(object? parameter) => parameter is GridItem { ColumnSpan: > 1 };
     private static bool CanSplitCellHorizontalExecute(object? parameter) => parameter is GridItem { RowSpan: > 1 };
@@ -310,31 +310,18 @@ public sealed class DynamicGridManager : ObservableObject
     private void MergeCells(object? parameter)
     {
         var selectableGridCells = _items.Where(i => i.GridItem.IsSelected).Select(i => i.GridItem).ToList();
+        if (selectableGridCells.Count == 0) 
+            return;
+        
         var (topLeft, bottomRight) = GetSelectedSquare(selectableGridCells);
 
-        GridItem? cellToExpand = null;
-        if (parameter is GridItem gridItem)
-        {
-            var row = gridItem.Row;
-            var column = gridItem.Column;
-            if (topLeft.X <= column && topLeft.Y <= row && bottomRight.X >= column && bottomRight.Y >= row)
-            {
-                cellToExpand = gridItem;
-            }
-        }
-
+        var cellToExpand = DetermineCellToExpand(parameter, topLeft, bottomRight, selectableGridCells);
         if (cellToExpand is null)
-        {
-            cellToExpand = selectableGridCells.FirstOrDefault(c => c.Row == topLeft.Y && c.Column == topLeft.X);
-            if (cellToExpand is null)
-            {
-                return;
-            }
-        }
+            return;
 
         MergeCells(topLeft, bottomRight, cellToExpand);
     }
-    
+
     private void MergeCells(Point topLeft, Point bottomRight, GridItem elementToExpand)
     {
         for (int i = _items.Count - 1; i >= 0; i--)
@@ -360,7 +347,7 @@ public sealed class DynamicGridManager : ObservableObject
         _items.Sync();
     }
     
-    private static (Point topLeft, Point bottomRight) GetSelectedSquare(IList<GridItem> gridItems)
+    private static (Point topLeft, Point bottomRight) GetSelectedSquare(List<GridItem> gridItems)
     {
         if (gridItems.Count == 0)
         {
@@ -373,6 +360,58 @@ public sealed class DynamicGridManager : ObservableObject
         var columnEnd = gridItems.Select(position => position.Column + position.ColumnSpan - 1).Max();
 
         return (new Point(columnStart, rowStart), new Point(columnEnd, rowEnd));
+    }
+    
+    private static GridItem? DetermineCellToExpand(object? parameter, Point topLeft, Point bottomRight, List<GridItem> selectableGridCells)
+    {
+        if (parameter is GridItem gridItem)
+        {
+            var row = gridItem.Row;
+            var column = gridItem.Column;
+            if (topLeft.X <= column
+                && topLeft.Y <= row
+                && bottomRight.X >= column
+                && bottomRight.Y >= row)
+            {
+                // return the cell in which 'merge' was called on is inside selection
+                return gridItem;
+            }
+        }
+
+        // return the top left cell in selection
+        return selectableGridCells.FirstOrDefault(c => c.Row == topLeft.Y && c.Column == topLeft.X);
+    }
+    
+    private bool DoesSelectionIntersectWithSpans()
+    {
+        var selectedItems = _items.Where(i => i.GridItem.IsSelected).Select(i => i.GridItem).ToList();
+        if (selectedItems.Count == 0) 
+            return false;
+
+        var (topLeft, bottomRight) = GetSelectedSquare(selectedItems);
+
+        return _items.Any(i => DoesCrossBoundary(i, topLeft, bottomRight));
+    }
+
+    private static bool DoesCrossBoundary(IGridItemHost gridItemHost, Point topLeft, Point bottomRight)
+    {
+        if (gridItemHost.GridItem is { RowSpan: 1, ColumnSpan: 1 })
+            return false;
+        
+        int itemLeft = gridItemHost.GridItem.Column;
+        int itemRight = gridItemHost.GridItem.Column + gridItemHost.GridItem.ColumnSpan - 1;
+        int itemTop = gridItemHost.GridItem.Row;
+        int itemBottom = gridItemHost.GridItem.Row + gridItemHost.GridItem.RowSpan - 1;
+
+        if (itemLeft > bottomRight.X || itemRight < topLeft.X || itemTop > bottomRight.Y || itemBottom < topLeft.Y)
+            return false;
+
+        bool crossesLeftEdge = itemLeft < topLeft.X && itemRight >= topLeft.X;
+        bool crossesRightEdge = itemLeft <= bottomRight.X && itemRight > bottomRight.X;
+        bool crossesTopEdge = itemTop < topLeft.Y && itemBottom >= topLeft.Y;
+        bool crossesBottomEdge = itemTop <= bottomRight.Y && itemBottom > bottomRight.Y;
+
+        return crossesLeftEdge || crossesRightEdge || crossesTopEdge || crossesBottomEdge;
     }
     
     private void SplitMerge(object? parameter)
