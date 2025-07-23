@@ -1,8 +1,7 @@
 ﻿namespace UiControls.DynamicGrid.ViewModel.ContextMenu;
 
-public sealed record ContextMenuItem : ContextMenuBase, IIsVisible
+public sealed record ContextMenuItem : ContextMenuBase
 {
-    public bool IsVisible => Command.CanExecute(CommandParameter);
     public required RelayCommand Command { get; init; }
     public required object? CommandParameter { get; init; }
 }

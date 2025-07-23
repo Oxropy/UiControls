@@ -1,6 +1,5 @@
 ﻿namespace UiControls.DynamicGrid.ViewModel.ContextMenu;
 
-public sealed record ContextMenuEmpty :IContextMenu , IIsVisible
+public sealed record ContextMenuEmpty :IContextMenu
 {
-    public bool IsVisible => false;
 }

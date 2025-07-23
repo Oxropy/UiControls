@@ -140,9 +140,6 @@ public sealed class DynamicGrid : Grid
         var contextMenu = new ContextMenu();
         foreach (var item in contextMenuStart.Items)
         {
-            if (item is IIsVisible { IsVisible: false })
-                continue;
-
             MenuItem menuItem = CreateMenuItem(item);
             contextMenu.Items.Add(menuItem);
         }
@@ -163,12 +160,28 @@ public sealed class DynamicGrid : Grid
 
     private static MenuItem CreateMenuItem(ContextMenuItem item)
     {
-        return new MenuItem
+        
+
+        var trigger = new Trigger
+        {
+            Property = IsEnabledProperty,
+            Value = false
+        };
+        
+        trigger.Setters.Add(new Setter(VisibilityProperty, Visibility.Collapsed));
+        
+        var style = new Style(typeof(MenuItem));
+        style.Triggers.Add(trigger);
+
+        var menuItem = new MenuItem
         {
             Header = item.Header,
             Command = item.Command,
-            CommandParameter = item.CommandParameter
+            CommandParameter = item.CommandParameter,
+            Style = style
         };
+        
+        return menuItem;
     }
     
     private static MenuItem CreateMenuItem(ContextMenuList item)
