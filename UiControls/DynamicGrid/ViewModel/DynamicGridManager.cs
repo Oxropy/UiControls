@@ -19,7 +19,7 @@ public sealed class DynamicGridManager : ObservableObject
         _contextMenuBuilder = new ContextMenuBuilder(this);
         _items.CollectionChanged += OnItemsCollectionChanged;
 
-        SelectCommand = new RelayCommand(SelectCell);
+        SelectCommand = new RelayCommand(SelectCell, CanSelectCellExecute);
         AddRowAboveCommand = new RelayCommand(p => AddRow((p, RowPosition.Above)), CanAddRowExecute);
         AddRowBelowCommand = new RelayCommand(p => AddRow((p, RowPosition.Below)), CanAddRowExecute);
         AddColumnToLeftCommand = new RelayCommand(p => AddColumn((p, ColumnPosition.ToLeft)), CanAddColumnExecute);
@@ -158,6 +158,7 @@ public sealed class DynamicGridManager : ObservableObject
     private bool IsInvalidRowConfiguration => RowDefinitionsCount != MinRows || MinRows != MaxRows;
     private bool IsInvalidColumnConfiguration => ColumnDefinitionsCount != MinColumns || MinColumns != MaxColumns;
 
+    private bool CanSelectCellExecute(object? arg) => _items.Count > 1;
     private bool CanAddRowExecute(object? parameter) => IsInvalidRowConfiguration && RowDefinitionsCount < MaxRows;
     private bool CanAddColumnExecute(object? parameter) => IsInvalidColumnConfiguration && ColumnDefinitionsCount < MaxColumns;
     private bool CanRemoveRowExecute(object? parameter) => IsInvalidRowConfiguration && RowDefinitionsCount > MinRows;

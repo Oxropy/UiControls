@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using UiControls.DynamicGrid.ViewModel;
 using UiControls.DynamicGrid.ViewModel.ContextMenu;
@@ -175,8 +176,6 @@ public sealed class DynamicGrid : Grid
 
     private static MenuItem CreateMenuItem(ContextMenuItem item)
     {
-        
-
         var trigger = new Trigger
         {
             Property = IsEnabledProperty,
@@ -203,14 +202,40 @@ public sealed class DynamicGrid : Grid
     {
         var menuItem = new MenuItem
         {
-            Header = item.Header,
+            Header = item.Header
         };
 
         foreach (var i in item.Items.Select(CreateMenuItem))
         {
             menuItem.Items.Add(i);
         }
-        
+
+        var multiBinding = new MultiBinding
+        {
+            Converter = new HasVisibleItemsMultiConverter()
+        };
+        multiBinding.Bindings.Add(new Binding("Items")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.Self)
+        });
+        multiBinding.Bindings.Add(new Binding("Items.Count")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.Self)
+        });
+
+        var trigger = new DataTrigger
+        {
+            Binding = multiBinding,
+            Value = false
+        };
+
+        trigger.Setters.Add(new Setter(VisibilityProperty, Visibility.Collapsed));
+
+        var style = new Style(typeof(MenuItem));
+        style.Triggers.Add(trigger);
+
+        menuItem.Style = style;
+
         return menuItem;
     }
     
