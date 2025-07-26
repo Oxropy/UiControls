@@ -1,4 +1,4 @@
-﻿namespace UiControls.DropOverlay;
+﻿namespace UiControls.DropOverlay.View;
 
 public enum DropOverlayPosition
 {

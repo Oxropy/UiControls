@@ -1,7 +1,7 @@
 ﻿<Window x:Class="UiControlsExamples.DragOverlay.DragOverlayShowcase"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:dropOverlay="clr-namespace:UiControls.DropOverlay;assembly=UiControls"
+        xmlns:view="clr-namespace:UiControls.DropOverlay.View;assembly=UiControls"
         Title="Drag Drop Demo" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -41,42 +41,42 @@
             </Border>
         </Grid>
         
-        <dropOverlay:DropOverlayControl Grid.Column="1" x:Name="DropOverlay"
+        <view:DropOverlayControl Grid.Column="1" x:Name="DropOverlay"
                                         Width="{Binding ActualWidth, ElementName=TargetGrid}"
                                         Height="{Binding ActualHeight, ElementName=TargetGrid}"
                                         IsHitTestVisible="False">
-            <dropOverlay:DropOverlayControl.Templates>
-                <dropOverlay:DropOverlayTemplate Position="Top">
+            <view:DropOverlayControl.Templates>
+                <view:DropOverlayTemplate Position="Top">
                     <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20"/>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Right">
+                </view:DropOverlayTemplate>
+                <view:DropOverlayTemplate Position="Right">
                     <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
                         <Image.LayoutTransform>
                             <RotateTransform Angle="90"/>
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Bottom">
+                </view:DropOverlayTemplate>
+                <view:DropOverlayTemplate Position="Bottom">
                     <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
                         <Image.LayoutTransform>
                             <RotateTransform Angle="180"/>
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Left">
+                </view:DropOverlayTemplate>
+                <view:DropOverlayTemplate Position="Left">
                     <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
                         <Image.LayoutTransform>
                             <RotateTransform Angle="270"/>
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Center">
+                </view:DropOverlayTemplate>
+                <view:DropOverlayTemplate Position="Center">
                     <Border Background="#80FF00FF" CornerRadius="5">
                         <TextBlock Text="Drop Here" HorizontalAlignment="Center"/>
                     </Border>
-                </dropOverlay:DropOverlayTemplate>
-            </dropOverlay:DropOverlayControl.Templates>
-        </dropOverlay:DropOverlayControl>
+                </view:DropOverlayTemplate>
+            </view:DropOverlayControl.Templates>
+        </view:DropOverlayControl>
     </Grid>
 </Window>
 

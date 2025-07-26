@@ -1,32 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
-namespace UiControls.DropOverlay;
+namespace UiControls.DropOverlay.View;
 
 public class DropOverlayControl : Canvas
 {
-    public static readonly DependencyProperty DefaultColorProperty = DependencyProperty.Register(
-        nameof(DefaultColor), typeof(Color), typeof(DropOverlayControl), new PropertyMetadata(Colors.Green));
-
-    public static readonly DependencyProperty HoverColorProperty = DependencyProperty.Register(
-        nameof(HoverColor), typeof(Color), typeof(DropOverlayControl), new PropertyMetadata(Colors.Blue));
-
     public static readonly DependencyProperty TemplatesProperty = DependencyProperty.Register(
         nameof(Templates), typeof(Collection<DropOverlayTemplate>), typeof(DropOverlayControl), new PropertyMetadata(new Collection<DropOverlayTemplate>()));
-
-    public Color DefaultColor
-    {
-        get => (Color)GetValue(DefaultColorProperty);
-        set => SetValue(DefaultColorProperty, value);
-    }
-
-    public Color HoverColor
-    {
-        get => (Color)GetValue(HoverColorProperty);
-        set => SetValue(HoverColorProperty, value);
-    }
 
     public Collection<DropOverlayTemplate> Templates
     {
@@ -43,7 +24,7 @@ public class DropOverlayControl : Canvas
         foreach (var position in Enum.GetValues<DropOverlayPosition>())
         {
             if (position == DropOverlayPosition.Unknown) continue;
-            _overlayRectangles[position] = new DropOverlayRectangle(position, DefaultColor, HoverColor);
+            _overlayRectangles[position] = new DropOverlayRectangle(position);
         }
     }
 
@@ -90,25 +71,7 @@ public class DropOverlayControl : Canvas
 
         return DropOverlayPosition.Unknown;
     }
-
-    public void UpdateHighlight(DropOverlayPosition dropOverlayPosition)
-    {
-        SetDefaultBrush();
-
-        if (_overlayRectangles.TryGetValue(dropOverlayPosition, out var rectangleToHighlight))
-        {
-            rectangleToHighlight.SetHoverBrush();
-        }
-    }
-
-    private void SetDefaultBrush()
-    {
-        foreach (var rectangle in _overlayRectangles.Values)
-        {
-            rectangle.SetDefaultBrush();
-        }
-    }
-
+    
     private void UpdatePosition(FrameworkElement target)
     {
         // Get the position of the target relative to the overlay canvas
@@ -123,34 +86,29 @@ public class DropOverlayControl : Canvas
         dropDropOverlayTop.Height = target.ActualHeight * smallSize;
         dropDropOverlayTop.Left = targetPos.X + (target.ActualWidth - dropDropOverlayTop.Width) / 2;
         dropDropOverlayTop.Top = targetPos.Y;
-        dropDropOverlayTop.SetDefaultBrush();
 
         var dropDropOverlayRight = _overlayRectangles[DropOverlayPosition.Right];
         dropDropOverlayRight.Width = target.ActualWidth * smallSize;
         dropDropOverlayRight.Height = target.ActualHeight * largeSize;
         dropDropOverlayRight.Left = targetPos.X + target.ActualWidth - dropDropOverlayRight.Width;
         dropDropOverlayRight.Top = targetPos.Y + (target.ActualHeight - dropDropOverlayRight.Height) / 2;
-        dropDropOverlayRight.SetDefaultBrush();
 
         var dropDropOverlayBottom = _overlayRectangles[DropOverlayPosition.Bottom];
         dropDropOverlayBottom.Width = target.ActualWidth * largeSize;
         dropDropOverlayBottom.Height = target.ActualHeight * smallSize;
         dropDropOverlayBottom.Left = targetPos.X + (target.ActualWidth - dropDropOverlayBottom.Width) / 2;
         dropDropOverlayBottom.Top = targetPos.Y + target.ActualHeight - dropDropOverlayBottom.Height;
-        dropDropOverlayBottom.SetDefaultBrush();
 
         var dropDropOverlayLeft = _overlayRectangles[DropOverlayPosition.Left];
         dropDropOverlayLeft.Width = target.ActualWidth * smallSize;
         dropDropOverlayLeft.Height = target.ActualHeight * largeSize;
         dropDropOverlayLeft.Left = targetPos.X;
         dropDropOverlayLeft.Top = targetPos.Y + (target.ActualHeight - dropDropOverlayLeft.Height) / 2;
-        dropDropOverlayLeft.SetDefaultBrush();
 
         var dropDropOverlayCenter = _overlayRectangles[DropOverlayPosition.Center];
         dropDropOverlayCenter.Width = target.ActualWidth * middleSize;
         dropDropOverlayCenter.Height = target.ActualHeight * middleSize;
         dropDropOverlayCenter.Left = targetPos.X + target.ActualWidth / 2 - dropDropOverlayCenter.Width / 2;
         dropDropOverlayCenter.Top = targetPos.Y + target.ActualHeight / 2 - dropDropOverlayCenter.Height / 2;
-        dropDropOverlayCenter.SetDefaultBrush();
     }
 }

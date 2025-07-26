@@ -1,25 +1,15 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
-namespace UiControls.DropOverlay;
+namespace UiControls.DropOverlay.View;
 
 public class DropOverlayRectangle : DropOverlayTemplate
 {
-    private readonly Color _defaultColor;
-    private readonly Color _hoverColor;
     private bool _isShowing;
 
-    public DropOverlayRectangle(DropOverlayPosition dropOverlayPosition, Color defaultColor, Color hoverColor)
+    public DropOverlayRectangle(DropOverlayPosition dropOverlayPosition)
     {
-        _defaultColor = defaultColor;
-        _hoverColor = hoverColor;
         Position = dropOverlayPosition;
-
-        if (Content == null)
-        {
-            Background = new SolidColorBrush(defaultColor);
-        }
     }
 
     public double Left
@@ -48,21 +38,5 @@ public class DropOverlayRectangle : DropOverlayTemplate
     {
         canvas.Children.Remove(this);
         _isShowing = false;
-    }
-
-    public void SetDefaultBrush()
-    {
-        if (Content is null)
-        {
-            Background = new SolidColorBrush(_defaultColor);
-        }
-    }
-
-    public void SetHoverBrush()
-    {
-        if (Content is null)
-        {
-            Background = new SolidColorBrush(_hoverColor);
-        }
     }
 }

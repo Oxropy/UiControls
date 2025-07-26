@@ -4,9 +4,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:dropOverlay="clr-namespace:UiControls.DropOverlay;assembly=UiControls"
         xmlns:dynamicGridDragOverlay="clr-namespace:UiControlsExamples.DynamicGridDragOverlay"
         xmlns:view="clr-namespace:UiControls.DynamicGrid.View;assembly=UiControls"
+        xmlns:view1="clr-namespace:UiControls.DropOverlay.View;assembly=UiControls"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance dynamicGridDragOverlay:DynamicGridDragOverlayViewModel}"
         Title="DynamicGridDragOverlayShowcase"
@@ -51,18 +51,18 @@
             </b:Interaction.Triggers>
         </view:DynamicGrid>
 
-        <dropOverlay:DropOverlayControl Grid.Column="1"
+        <view1:DropOverlayControl Grid.Column="1"
                                         x:Name="DropOverlay"
                                         Width="{Binding ActualWidth, ElementName=DynamicGrid}"
                                         Height="{Binding ActualHeight, ElementName=DynamicGrid}"
                                         IsHitTestVisible="False">
-            <dropOverlay:DropOverlayControl.Templates>
-                <dropOverlay:DropOverlayTemplate Position="Top">
+            <view1:DropOverlayControl.Templates>
+                <view1:DropOverlayTemplate Position="Top">
                     <Image Source="/DragOverlay/Images/add_above.png"
                            Height="20"
                            Width="20" />
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Right">
+                </view1:DropOverlayTemplate>
+                <view1:DropOverlayTemplate Position="Right">
                     <Image Source="/DragOverlay/Images/add_above.png"
                            Height="20"
                            Width="20">
@@ -70,8 +70,8 @@
                             <RotateTransform Angle="90" />
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Bottom">
+                </view1:DropOverlayTemplate>
+                <view1:DropOverlayTemplate Position="Bottom">
                     <Image Source="/DragOverlay/Images/add_above.png"
                            Height="20"
                            Width="20">
@@ -79,8 +79,8 @@
                             <RotateTransform Angle="180" />
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Left">
+                </view1:DropOverlayTemplate>
+                <view1:DropOverlayTemplate Position="Left">
                     <Image Source="/DragOverlay/Images/add_above.png"
                            Height="20"
                            Width="20">
@@ -88,15 +88,15 @@
                             <RotateTransform Angle="270" />
                         </Image.LayoutTransform>
                     </Image>
-                </dropOverlay:DropOverlayTemplate>
-                <dropOverlay:DropOverlayTemplate Position="Center">
+                </view1:DropOverlayTemplate>
+                <view1:DropOverlayTemplate Position="Center">
                     <Border Background="#80FF00FF"
                             CornerRadius="5">
                         <TextBlock Text="Drop Here"
                                    HorizontalAlignment="Center" />
                     </Border>
-                </dropOverlay:DropOverlayTemplate>
-            </dropOverlay:DropOverlayControl.Templates>
-        </dropOverlay:DropOverlayControl>
+                </view1:DropOverlayTemplate>
+            </view1:DropOverlayControl.Templates>
+        </view1:DropOverlayControl>
     </Grid>
 </Window>

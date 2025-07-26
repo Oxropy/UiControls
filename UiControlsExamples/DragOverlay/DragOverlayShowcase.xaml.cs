@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using UiControls.DropOverlay;
+using UiControls.DropOverlay.View;
 
 namespace UiControlsExamples.DragOverlay;
 
@@ -86,7 +86,6 @@ public partial class DragOverlayShowcase
 
             Point position = e.GetPosition(target);
             DropOverlayPosition dropOverlayPosition = DropOverlay.GetDropPosition(position, target);
-            DropOverlay.UpdateHighlight(dropOverlayPosition);
 
             e.Effects = dropOverlayPosition != DropOverlayPosition.Unknown
                 ? DragDropEffects.Move
