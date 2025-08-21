@@ -1,114 +1,109 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
+using UiControls.DropOverlay.ViewModel;
 
 namespace UiControls.DropOverlay.View;
 
 public class DropOverlayControl : Canvas
 {
     public static readonly DependencyProperty TemplatesProperty = DependencyProperty.Register(
-        nameof(Templates), typeof(Collection<DropOverlayTemplate>), typeof(DropOverlayControl), new PropertyMetadata(new Collection<DropOverlayTemplate>()));
+        nameof(Templates), typeof(ObservableCollection<DropZoneViewModel>), typeof(DropOverlayControl),
+        new PropertyMetadata(new ObservableCollection<DropZoneViewModel>()));
 
-    public Collection<DropOverlayTemplate> Templates
+    private readonly ViewViewModelMapping<DropZoneViewModel> _viewViewModelMapping = new();
+    private FrameworkElement? _lastTarget;
+    
+    public ObservableCollection<DropZoneViewModel> Templates
     {
-        get => (Collection<DropOverlayTemplate>)GetValue(TemplatesProperty);
+        get => (ObservableCollection<DropZoneViewModel>)GetValue(TemplatesProperty);
         set => SetValue(TemplatesProperty, value);
     }
-    
-    private readonly Dictionary<DropOverlayPosition, DropOverlayRectangle> _overlayRectangles = new();
 
-    public DropOverlayControl()
+    public void RegisterViewType<TView, TViewModel>()
+        where TView : FrameworkElement
+        where TViewModel : DropZoneViewModel
     {
-        IsHitTestVisible = false;
-
-        foreach (var position in Enum.GetValues<DropOverlayPosition>())
-        {
-            if (position == DropOverlayPosition.Unknown) continue;
-            _overlayRectangles[position] = new DropOverlayRectangle(position);
-        }
+        _viewViewModelMapping.RegisterViewType<TView, TViewModel>();
     }
 
-    public void Show(FrameworkElement target)
+    public DropZoneViewModel? GetDropPosition(Point position, FrameworkElement target)
     {
-        foreach (var template in Templates)
-        {
-            if (_overlayRectangles.TryGetValue(template.Position, out var rectangle))
-            {
-                rectangle.Content = template.Content;
-            }
-        }
-
-        foreach (var rectangle in _overlayRectangles.Values)
-        {
-            rectangle.AddToCanvas(this);
-        }
-
-
-        UpdatePosition(target);
-    }
-
-    public void Hide()
-    {
-        foreach (var rectangle in _overlayRectangles.Values)
-        {
-            rectangle.RemoveFromCanvas(this);
-        }
-    }
-
-    public DropOverlayPosition GetDropPosition(Point position, FrameworkElement target)
-    {
-        // Convert the position to be relative to the overlay canvas
         Point canvasPosition = target.TranslatePoint(position, this);
 
-        // Check each rectangle
-        foreach (var rectangle in _overlayRectangles)
+        foreach (DropZoneViewModel viewModel in _viewViewModelMapping.GetViewModels())
         {
-            if (rectangle.Value.Bounds.Contains(canvasPosition))
+            var viewBounds = new Rect(viewModel.Left, viewModel.Top, viewModel.Width, viewModel.Height);
+            if (viewBounds.Contains(canvasPosition))
             {
-                return rectangle.Key;
+                return viewModel;
             }
         }
 
-        return DropOverlayPosition.Unknown;
+        return null;
     }
-    
+
     private void UpdatePosition(FrameworkElement target)
     {
         // Get the position of the target relative to the overlay canvas
         Point targetPos = target.TranslatePoint(new Point(0, 0), this);
 
-        const double smallSize = 0.1;
-        const double middleSize = 0.25;
-        const double largeSize = 0.8;
+        foreach ((DropZoneViewModel viewModel, FrameworkElement _) in _viewViewModelMapping.GetViewAndViewModels())
+        {
+            viewModel.UpdatePosition(targetPos, target.ActualWidth, target.ActualHeight);
+        }
+    }
 
-        var dropDropOverlayTop = _overlayRectangles[DropOverlayPosition.Top];
-        dropDropOverlayTop.Width = target.ActualWidth * largeSize;
-        dropDropOverlayTop.Height = target.ActualHeight * smallSize;
-        dropDropOverlayTop.Left = targetPos.X + (target.ActualWidth - dropDropOverlayTop.Width) / 2;
-        dropDropOverlayTop.Top = targetPos.Y;
+    public void Show(FrameworkElement target)
+    {
+        foreach (DropZoneViewModel template in Templates)
+        {
+            FrameworkElement view = _viewViewModelMapping.GetViewForViewModel(template);
+            view.SetBinding(LeftProperty, new Binding(nameof(DropZoneViewModel.Left)));
+            view.SetBinding(TopProperty, new Binding(nameof(DropZoneViewModel.Top)));
+            view.IsHitTestVisible = false;
 
-        var dropDropOverlayRight = _overlayRectangles[DropOverlayPosition.Right];
-        dropDropOverlayRight.Width = target.ActualWidth * smallSize;
-        dropDropOverlayRight.Height = target.ActualHeight * largeSize;
-        dropDropOverlayRight.Left = targetPos.X + target.ActualWidth - dropDropOverlayRight.Width;
-        dropDropOverlayRight.Top = targetPos.Y + (target.ActualHeight - dropDropOverlayRight.Height) / 2;
+            DisableHitTestingRecursively(view);
+            
+            Children.Add(view);
+        }
 
-        var dropDropOverlayBottom = _overlayRectangles[DropOverlayPosition.Bottom];
-        dropDropOverlayBottom.Width = target.ActualWidth * largeSize;
-        dropDropOverlayBottom.Height = target.ActualHeight * smallSize;
-        dropDropOverlayBottom.Left = targetPos.X + (target.ActualWidth - dropDropOverlayBottom.Width) / 2;
-        dropDropOverlayBottom.Top = targetPos.Y + target.ActualHeight - dropDropOverlayBottom.Height;
+        if (_lastTarget != target)
+        {
+            _lastTarget = target;
+            UpdatePosition(target);
+        }
 
-        var dropDropOverlayLeft = _overlayRectangles[DropOverlayPosition.Left];
-        dropDropOverlayLeft.Width = target.ActualWidth * smallSize;
-        dropDropOverlayLeft.Height = target.ActualHeight * largeSize;
-        dropDropOverlayLeft.Left = targetPos.X;
-        dropDropOverlayLeft.Top = targetPos.Y + (target.ActualHeight - dropDropOverlayLeft.Height) / 2;
+        AllowDrop = true;
+        IsHitTestVisible = true;
+    }
 
-        var dropDropOverlayCenter = _overlayRectangles[DropOverlayPosition.Center];
-        dropDropOverlayCenter.Width = target.ActualWidth * middleSize;
-        dropDropOverlayCenter.Height = target.ActualHeight * middleSize;
-        dropDropOverlayCenter.Left = targetPos.X + target.ActualWidth / 2 - dropDropOverlayCenter.Width / 2;
-        dropDropOverlayCenter.Top = targetPos.Y + target.ActualHeight / 2 - dropDropOverlayCenter.Height / 2;
+    public void Hide()
+    {
+        _lastTarget = null;
+
+        foreach (FrameworkElement view in _viewViewModelMapping.GetViews())
+        {
+            Children.Remove(view);
+        }
+        
+        AllowDrop = false;
+        IsHitTestVisible = false;
+    }
+    
+    private static void DisableHitTestingRecursively(DependencyObject element)
+    {
+        if (element is UIElement uiElement)
+        {
+            uiElement.IsHitTestVisible = false;
+        }
+
+        int childrenCount = VisualTreeHelper.GetChildrenCount(element);
+        for (var i = 0; i < childrenCount; i++)
+        {
+            DisableHitTestingRecursively(VisualTreeHelper.GetChild(element, i));
+        }
     }
 }

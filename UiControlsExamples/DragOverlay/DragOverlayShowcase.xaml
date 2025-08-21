@@ -1,82 +1,105 @@
 ﻿<Window x:Class="UiControlsExamples.DragOverlay.DragOverlayShowcase"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:view="clr-namespace:UiControls.DropOverlay.View;assembly=UiControls"
-        Title="Drag Drop Demo" Height="450" Width="800">
+        xmlns:dragOverlay="clr-namespace:UiControlsExamples.DragOverlay"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance dragOverlay:DragOverlayViewModel}"
+        Title="Drag Drop Demo"
+        Height="450"
+        Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- Source TreeView -->
-        <TreeView x:Name="SourceTreeView" Grid.Column="0" Margin="5">
-            <TreeViewItem Header="Item 1" Tag="1"/>
-            <TreeViewItem Header="Item 2" Tag="2"/>
-            <TreeViewItem Header="Item 3" Tag="3"/>
+        <TreeView x:Name="SourceTreeView"
+                  Grid.Column="0"
+                  Margin="5">
+            <TreeViewItem Header="Item 1"
+                          Tag="1" />
+            <TreeViewItem Header="Item 2"
+                          Tag="2" />
+            <TreeViewItem Header="Item 3"
+                          Tag="3" />
         </TreeView>
 
         <!-- Target Grid -->
-        <Grid x:Name="TargetGrid" Grid.Column="1" Margin="5">
+        <Grid x:Name="TargetGrid"
+              Grid.Column="1"
+              Margin="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Row="0" Grid.Column="0" Background="LightGray" Margin="2">
-                <TextBlock Text="Drop Zone 1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="0"
+                    Grid.Column="0"
+                    Background="LightGray"
+                    Margin="2">
+                <behaviors:Interaction.Behaviors>
+                    <view:DropOverlayBehavior DropOverlayControl="{Binding ElementName=DropOverlay}"
+                                              ShouldShowOverlayCommand="{Binding ShouldShowOverlayCommand}"
+                                              HandleDropCommand="{Binding HandleDropCommand}" />
+                </behaviors:Interaction.Behaviors>
+                <TextBlock Text="Drop Zone 1"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
             </Border>
-            <Border Grid.Row="0" Grid.Column="1" Background="LightGray" Margin="2">
-                <TextBlock Text="Drop Zone 2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="0"
+                    Grid.Column="1"
+                    Background="LightGray"
+                    Margin="2">
+                <behaviors:Interaction.Behaviors>
+                    <view:DropOverlayBehavior DropOverlayControl="{Binding ElementName=DropOverlay}"
+                                              ShouldShowOverlayCommand="{Binding ShouldShowOverlayCommand}"
+                                              HandleDropCommand="{Binding HandleDropCommand}" />
+                </behaviors:Interaction.Behaviors>
+                <TextBlock Text="Drop Zone 2"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
             </Border>
-            <Border Grid.Row="1" Grid.Column="0" Background="LightGray" Margin="2">
-                <TextBlock Text="Drop Zone 3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="1"
+                    Grid.Column="0"
+                    Background="LightGray"
+                    Margin="2">
+                <behaviors:Interaction.Behaviors>
+                    <view:DropOverlayBehavior DropOverlayControl="{Binding ElementName=DropOverlay}"
+                                              ShouldShowOverlayCommand="{Binding ShouldShowOverlayCommand}"
+                                              HandleDropCommand="{Binding HandleDropCommand}" />
+                </behaviors:Interaction.Behaviors>
+                <TextBlock Text="Drop Zone 3"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
             </Border>
-            <Border Grid.Row="1" Grid.Column="1" Background="LightGray" Margin="2">
-                <TextBlock Text="Drop Zone 4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="1"
+                    Grid.Column="1"
+                    Background="LightGray"
+                    Margin="2">
+                <behaviors:Interaction.Behaviors>
+                    <view:DropOverlayBehavior DropOverlayControl="{Binding ElementName=DropOverlay}"
+                                              ShouldShowOverlayCommand="{Binding ShouldShowOverlayCommand}"
+                                              HandleDropCommand="{Binding HandleDropCommand}" />
+                </behaviors:Interaction.Behaviors>
+                <TextBlock Text="Drop Zone 4"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
             </Border>
         </Grid>
-        
-        <view:DropOverlayControl Grid.Column="1" x:Name="DropOverlay"
-                                        Width="{Binding ActualWidth, ElementName=TargetGrid}"
-                                        Height="{Binding ActualHeight, ElementName=TargetGrid}"
-                                        IsHitTestVisible="False">
-            <view:DropOverlayControl.Templates>
-                <view:DropOverlayTemplate Position="Top">
-                    <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20"/>
-                </view:DropOverlayTemplate>
-                <view:DropOverlayTemplate Position="Right">
-                    <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="90"/>
-                        </Image.LayoutTransform>
-                    </Image>
-                </view:DropOverlayTemplate>
-                <view:DropOverlayTemplate Position="Bottom">
-                    <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="180"/>
-                        </Image.LayoutTransform>
-                    </Image>
-                </view:DropOverlayTemplate>
-                <view:DropOverlayTemplate Position="Left">
-                    <Image Source="/DragOverlay/Images/add_above.png" Height="20" Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="270"/>
-                        </Image.LayoutTransform>
-                    </Image>
-                </view:DropOverlayTemplate>
-                <view:DropOverlayTemplate Position="Center">
-                    <Border Background="#80FF00FF" CornerRadius="5">
-                        <TextBlock Text="Drop Here" HorizontalAlignment="Center"/>
-                    </Border>
-                </view:DropOverlayTemplate>
-            </view:DropOverlayControl.Templates>
-        </view:DropOverlayControl>
+
+        <view:DropOverlayControl Grid.Column="1"
+                                 x:Name="DropOverlay"
+                                 Width="{Binding ActualWidth, ElementName=TargetGrid}"
+                                 Height="{Binding ActualHeight, ElementName=TargetGrid}"
+                                 Templates="{Binding DropOverlayViewModel.DropZones}" />
     </Grid>
 </Window>
-

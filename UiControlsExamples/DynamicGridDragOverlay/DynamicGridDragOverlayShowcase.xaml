@@ -55,48 +55,6 @@
                                         x:Name="DropOverlay"
                                         Width="{Binding ActualWidth, ElementName=DynamicGrid}"
                                         Height="{Binding ActualHeight, ElementName=DynamicGrid}"
-                                        IsHitTestVisible="False">
-            <view1:DropOverlayControl.Templates>
-                <view1:DropOverlayTemplate Position="Top">
-                    <Image Source="/DragOverlay/Images/add_above.png"
-                           Height="20"
-                           Width="20" />
-                </view1:DropOverlayTemplate>
-                <view1:DropOverlayTemplate Position="Right">
-                    <Image Source="/DragOverlay/Images/add_above.png"
-                           Height="20"
-                           Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="90" />
-                        </Image.LayoutTransform>
-                    </Image>
-                </view1:DropOverlayTemplate>
-                <view1:DropOverlayTemplate Position="Bottom">
-                    <Image Source="/DragOverlay/Images/add_above.png"
-                           Height="20"
-                           Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="180" />
-                        </Image.LayoutTransform>
-                    </Image>
-                </view1:DropOverlayTemplate>
-                <view1:DropOverlayTemplate Position="Left">
-                    <Image Source="/DragOverlay/Images/add_above.png"
-                           Height="20"
-                           Width="20">
-                        <Image.LayoutTransform>
-                            <RotateTransform Angle="270" />
-                        </Image.LayoutTransform>
-                    </Image>
-                </view1:DropOverlayTemplate>
-                <view1:DropOverlayTemplate Position="Center">
-                    <Border Background="#80FF00FF"
-                            CornerRadius="5">
-                        <TextBlock Text="Drop Here"
-                                   HorizontalAlignment="Center" />
-                    </Border>
-                </view1:DropOverlayTemplate>
-            </view1:DropOverlayControl.Templates>
-        </view1:DropOverlayControl>
+                                        Templates="{Binding DropOverlayViewModel.DropZones}"/>
     </Grid>
 </Window>

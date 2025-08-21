@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="UiControls.DropOverlay.View.DropOverlayImage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:UiControls.DropOverlay.ViewModel"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModel:ImageDropZoneViewModel}"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             Width="{Binding Width}"
+             Height="{Binding Height}">
+    <Border Background="{Binding BackgroundBrush}"
+            BorderBrush="{Binding BorderBrush}"
+            CornerRadius="{Binding CornerRadius}">
+        <Image Source="{Binding ImagePath}"
+               Height="{Binding ImageHeight}"
+               Width="{Binding ImageWidth}">
+            <Image.LayoutTransform>
+                <RotateTransform Angle="{Binding ImageRotation}" />
+            </Image.LayoutTransform>
+        </Image>
+    </Border>
+</UserControl>

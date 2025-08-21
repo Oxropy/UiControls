@@ -10,8 +10,7 @@ namespace UiControls.DynamicGrid.View;
 
 public sealed class DynamicGrid : Grid
 {
-    private readonly Dictionary<Type, Type> _viewRegistry = new();
-    private readonly Dictionary<IGridItemHost, FrameworkElement> _viewModelViewMapping = new();
+    private readonly ViewViewModelMapping<IGridItemHost> _viewViewModelMapping = new();
 
     private static readonly RoutedEvent OpenContextMenuEvent = EventManager.RegisterRoutedEvent(
         nameof(OpenContextMenu), 
@@ -46,6 +45,8 @@ public sealed class DynamicGrid : Grid
         Unloaded += OnUnloaded;
     }
     
+    public Action<FrameworkElement>? ConfigureViewBehavior { get; set; }
+    
     public ContextMenuStart<IGridItemHost>? ContextMenuItem
     {
         get => (ContextMenuStart<IGridItemHost>)GetValue(ContextMenuItemProperty);
@@ -54,25 +55,7 @@ public sealed class DynamicGrid : Grid
 
     public void RegisterViewType<TView, TViewModel>() where TView : FrameworkElement where TViewModel : IGridItemHost
     {
-        _viewRegistry[typeof(TViewModel)] = typeof(TView);
-    }
-    
-    private FrameworkElement CreateViewForViewModel(IGridItemHost viewModel)
-    {
-        if (!_viewRegistry.TryGetValue(viewModel.GetType(), out var viewType))
-        {
-            throw new InvalidOperationException($"No view registered for view type: {nameof(viewModel)}");
-        }
-
-        if (_viewModelViewMapping.TryGetValue(viewModel, out var view))
-        {
-            return view;
-        }
-        
-        view = (FrameworkElement)Activator.CreateInstance(viewType)!;
-        view.DataContext = viewModel;
-        _viewModelViewMapping[viewModel] = view;
-        return view;
+        _viewViewModelMapping.RegisterViewType<TView, TViewModel>();
     }
     
     private void UpdateGridItems(IList<IGridItemHost> items)
@@ -84,7 +67,7 @@ public sealed class DynamicGrid : Grid
 
         foreach (var item in items)
         {
-            var element = CreateViewForViewModel(item);
+            var element = _viewViewModelMapping.GetViewForViewModel(item, ConfigureViewBehavior);
             SetRow(element, item.GridItem.Row);
             SetColumn(element, item.GridItem.Column);
             SetRowSpan(element, item.GridItem.RowSpan);
@@ -92,22 +75,9 @@ public sealed class DynamicGrid : Grid
             Children.Add(element);
         }
         
-        CleanupViewModelViewMapping(items);
+        _viewViewModelMapping.RemoveNotExistingViewModels(items);
     }
     
-    private void CleanupViewModelViewMapping(IList<IGridItemHost> items)
-    {
-        var keysToRemove = _viewModelViewMapping.Keys
-            .Where(key => !items.Contains(key))
-            .ToList();
-
-        foreach (var key in keysToRemove)
-        {
-            _viewModelViewMapping.Remove(key);
-        }
-    }
-
-
     private void UpdateRowDefinitions(IList<IGridItemHost> items)
     {
         if (!items.Any())
@@ -150,11 +120,11 @@ public sealed class DynamicGrid : Grid
     {
         if (d is not DynamicGrid dynamicGrid 
             || e.NewValue is not ContextMenuStart<IGridItemHost> contextMenuStart 
-            || !dynamicGrid._viewModelViewMapping.TryGetValue(contextMenuStart.ViewModel, out var view))
+            || !dynamicGrid._viewViewModelMapping.TryGetViewForViewModel(contextMenuStart.ViewModel, out FrameworkElement? view))
             return;
 
         var contextMenu = new ContextMenu();
-        foreach (var item in contextMenuStart.Items)
+        foreach (IContextMenu item in contextMenuStart.Items)
         {
             MenuItem menuItem = CreateMenuItem(item);
             contextMenu.Items.Add(menuItem);
@@ -262,12 +232,13 @@ public sealed class DynamicGrid : Grid
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        var items = e.NewItems?.Cast<IGridItemHost>().ToList() ?? null;
-        if (items != null)
-        {
-            UpdateGridItems(items);
-            ItemsChanged?.Invoke(this, items.Select(i => _viewModelViewMapping[i]).ToList());
-        }
+        if (DataContext is not IDynamicGridManagerHost host)
+            return;
+
+        List<IGridItemHost> items = host.DynamicGridManager.Items.ToList();
+
+        UpdateGridItems(items);
+        ItemsChanged?.Invoke(this, items.Select(i => _viewViewModelMapping.GetView(i)).ToList());
     }
     
     private void OnUnloaded(object sender, RoutedEventArgs e)
