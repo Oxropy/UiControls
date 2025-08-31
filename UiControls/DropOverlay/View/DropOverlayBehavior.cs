@@ -22,6 +22,7 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
         new PropertyMetadata(default(ICommand?)));
 
     private bool _isOverlayVisible;
+    private bool _isDraggingOver;
     private readonly Dictionary<UIElement, bool> _originalHitTestValues = new();
 
     public DropOverlayControl? DropOverlayControl
@@ -66,12 +67,17 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
             AssociatedObject.Drop -= Element_Drop;
         }
 
+        // Ensure we stop monitoring keyboard if still subscribed
+        InputManager.Current.PreProcessInput -= InputManagerOnPreProcessInput;
+
         base.OnDetaching();
     }
 
     private void Element_DragEnter(object sender, DragEventArgs e)
     {
-        // Currently not needed
+        // Start monitoring keyboard to update overlay without mouse movement
+        _isDraggingOver = true;
+        InputManager.Current.PreProcessInput += InputManagerOnPreProcessInput;
         int row = Grid.GetRow(AssociatedObject);
         int column = Grid.GetColumn(AssociatedObject);
         System.Diagnostics.Debug.WriteLine($"DragEnter - Row: {row}, Column: {column}");
@@ -126,12 +132,9 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
         int column = Grid.GetColumn(AssociatedObject);
         System.Diagnostics.Debug.WriteLine($"DragLeave - Row: {row}, Column: {column}");
         
-         Point p = e.GetPosition(AssociatedObject);
-         if (p.X >= 0 && p.X <= AssociatedObject.ActualWidth && p.Y >= 0 && p.Y <= AssociatedObject.ActualHeight)
-         {
-             e.Handled = true;
-             return;
-         }
+        // Stop monitoring keyboard when drag leaves
+        _isDraggingOver = false;
+        InputManager.Current.PreProcessInput -= InputManagerOnPreProcessInput;
         
         DropOverlayControl?.Hide();
         RestoreChildHitTesting();
@@ -143,6 +146,10 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
         DropEventArgs dropEventArgs = GetDropEventArgs(sender, e);
         HandleDropCommand?.Execute(dropEventArgs);
         DropOverlayControl?.Hide();
+        
+        // Stop monitoring keyboard when drop completes
+        _isDraggingOver = false;
+        InputManager.Current.PreProcessInput -= InputManagerOnPreProcessInput;
         
         RestoreChildHitTesting();
         _isOverlayVisible = false;
@@ -179,6 +186,18 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
         Point position = e.GetPosition(AssociatedObject);
         return DropOverlayControl?.GetDropPosition(position, AssociatedObject);
     }
+
+    private bool ShouldShowOverlayKeyboardOnly()
+    {
+        // Evaluate using current keyboard state; pass a DropEventArgs with null DragEventArgs
+        var dropEventArgs = new DropEventArgs
+        {
+            Sender = AssociatedObject,
+            DragEventArgs = null,
+            DropZone = null
+        };
+        return ShouldShowOverlayCommand?.CanExecute(dropEventArgs) == true;
+    }
     
     private void DisableChildHitTesting(FrameworkElement parent)
     {
@@ -210,5 +229,31 @@ public class DropOverlayBehavior : Behavior<FrameworkElement>
         }
 
         _originalHitTestValues.Clear();
+    }
+
+    private void InputManagerOnPreProcessInput(object? sender, PreProcessInputEventArgs e)
+    {
+        if (!_isDraggingOver)
+            return;
+
+        if (e?.StagingItem?.Input is KeyEventArgs keyEventArgs)
+        {
+            if (keyEventArgs.IsRepeat)
+                return;
+
+            bool shouldShow = ShouldShowOverlayKeyboardOnly();
+            if (shouldShow && !_isOverlayVisible)
+            {
+                DropOverlayControl?.Show(AssociatedObject);
+                DisableChildHitTesting(AssociatedObject);
+                _isOverlayVisible = true;
+            }
+            else if (!shouldShow && _isOverlayVisible)
+            {
+                DropOverlayControl?.Hide();
+                RestoreChildHitTesting();
+                _isOverlayVisible = false;
+            }
+        }
     }
 }

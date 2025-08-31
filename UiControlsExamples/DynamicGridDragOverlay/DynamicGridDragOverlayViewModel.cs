@@ -158,10 +158,8 @@ public class DynamicGridDragOverlayViewModel : ObservableObject, IDynamicGridMan
     
     private static bool ShouldShowOverlayCanExecute(object? arg)
     {
-        if (arg is not DropEventArgs { DragEventArgs: { } dragEventArgs })
-            return false;
-
-        return (dragEventArgs.KeyStates & DragDropKeyStates.ControlKey) == DragDropKeyStates.ControlKey;
+        // Use current keyboard modifiers so evaluation works even without DragEventArgs updates
+        return (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
     }
     
     private static ObservableCollection<DropZoneViewModel> CreateDragOverlayZones()

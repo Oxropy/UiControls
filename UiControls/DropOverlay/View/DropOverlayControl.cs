@@ -76,8 +76,9 @@ public class DropOverlayControl : Canvas
             UpdatePosition(target);
         }
 
-        AllowDrop = true;
-        IsHitTestVisible = true;
+        // Ensure the overlay does not intercept drag/hit-test events so underlying targets keep receiving DragOver
+        AllowDrop = false;
+        IsHitTestVisible = false;
     }
 
     public void Hide()
