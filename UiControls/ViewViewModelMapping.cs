@@ -17,14 +17,14 @@ public class ViewViewModelMapping<TViewModelBase> where TViewModelBase : notnull
     
     public FrameworkElement GetViewForViewModel(TViewModelBase viewModel, Action<FrameworkElement>? configureViewBehavior = null)
     {
-        if (!_viewRegistry.TryGetValue(viewModel.GetType(), out Type? viewType))
-        {
-            throw new InvalidOperationException($"No view registered for view type: {nameof(viewModel)}");
-        }
-
         if (_viewModelViewMapping.TryGetValue(viewModel, out FrameworkElement? view))
         {
             return view;
+        }
+        
+        if (!_viewRegistry.TryGetValue(viewModel.GetType(), out Type? viewType))
+        {
+            throw new InvalidOperationException($"No view registered for view type: {nameof(viewModel)}");
         }
         
         view = (FrameworkElement)Activator.CreateInstance(viewType)!;

@@ -58,6 +58,8 @@ public class DropOverlayControl : Canvas
 
     public void Show(FrameworkElement target)
     {
+        Children.Clear();
+        
         foreach (DropZoneViewModel template in Templates)
         {
             FrameworkElement view = _viewViewModelMapping.GetViewForViewModel(template);
