@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="UiControlsExamples.KeyboardOverlay.OverlayContentControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="300"
+             d:DesignWidth="300">
+    <Border Background="White" 
+            BorderBrush="Gray" 
+            BorderThickness="2" 
+            CornerRadius="10"
+            Padding="20"
+            MinWidth="300"
+            MinHeight="200">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Opacity="0.3" ShadowDepth="5" BlurRadius="10"/>
+        </Border.Effect>
+        <StackPanel>
+            <TextBlock Text="Overlay Menu" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,20"/>
+            
+            <TextBlock Text="Press and hold the trigger key to keep overlay open" 
+                       FontSize="12" 
+                       Foreground="Gray"
+                       HorizontalAlignment="Center"
+                       Margin="0,20,0,0"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+    </Border>
+
+</UserControl>

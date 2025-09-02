@@ -1,0 +1,28 @@
+﻿<Window x:Class="UiControlsExamples.KeyboardOverlay.KeyboardOverlayShowcase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:UiControlsExamples.KeyboardOverlay"
+        xmlns:view="clr-namespace:UiControls.KeyboardOverlay.View;assembly=UiControls"
+        mc:Ignorable="d"
+        Title="KeyboardOverlayShowcase"
+        Height="450"
+        Width="800">
+    <Grid>
+        <TextBlock Text="Press and hold the trigger key to open the overlay" 
+                   FontSize="12" 
+                   Foreground="Gray"
+                   HorizontalAlignment="Center"
+                   Margin="0,20,0,0"
+                   TextWrapping="Wrap"/>
+        
+        <!-- Keyboard Overlay Control -->
+        <view:KeyboardOverlayControl TriggerKey="Space"
+                                        RequiredModifiers="Control">
+            <view:KeyboardOverlayControl.OverlayContent>
+                <local:OverlayContentControl/>
+            </view:KeyboardOverlayControl.OverlayContent>
+        </view:KeyboardOverlayControl>
+    </Grid>
+</Window>
