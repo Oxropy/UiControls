@@ -10,19 +10,106 @@
         Height="450"
         Width="800">
     <Grid>
-        <TextBlock Text="Press and hold the trigger key to open the overlay" 
-                   FontSize="12" 
-                   Foreground="Gray"
-                   HorizontalAlignment="Center"
-                   Margin="0,20,0,0"
-                   TextWrapping="Wrap"/>
-        
-        <!-- Keyboard Overlay Control -->
-        <view:KeyboardOverlayControl TriggerKey="Space"
-                                        RequiredModifiers="Control">
-            <view:KeyboardOverlayControl.OverlayContent>
-                <local:OverlayContentControl/>
-            </view:KeyboardOverlayControl.OverlayContent>
-        </view:KeyboardOverlayControl>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Instructions -->
+        <StackPanel Grid.Row="0"
+                    Margin="10">
+            <TextBlock Text="Two overlay modes available:"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Margin="0,0,0,10" />
+            <TextBlock Text="1. Keyboard mode: Press and hold Ctrl+Space to show overlay"
+                       FontSize="12"
+                       Foreground="Gray"
+                       Margin="0,0,0,5" />
+            <TextBlock Text="2. Drag mode: Drag any item from the source list to show overlay"
+                       FontSize="12"
+                       Foreground="Gray"
+                       Margin="0,0,0,10" />
+        </StackPanel>
+
+        <!-- Main content area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Source items for dragging -->
+            <Border Grid.Column="0"
+                    Background="LightBlue"
+                    Margin="5"
+                    CornerRadius="5">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Drag Items:"
+                               FontWeight="Bold"
+                               Margin="0,0,0,10" />
+
+                    <Border Background="White"
+                            Margin="0,2"
+                            Padding="5"
+                            CornerRadius="3"
+                            MouseLeftButtonDown="DragItem_MouseLeftButtonDown">
+                        <TextBlock Text="Draggable Item 1"
+                                   Tag="Item1" />
+                    </Border>
+
+                    <Border Background="White"
+                            Margin="0,2"
+                            Padding="5"
+                            CornerRadius="3"
+                            MouseLeftButtonDown="DragItem_MouseLeftButtonDown">
+                        <TextBlock Text="Draggable Item 2"
+                                   Tag="Item2" />
+                    </Border>
+
+                    <Border Background="White"
+                            Margin="0,2"
+                            Padding="5"
+                            CornerRadius="3"
+                            MouseLeftButtonDown="DragItem_MouseLeftButtonDown">
+                        <TextBlock Text="Draggable Item 3"
+                                   Tag="Item3" />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Drop area -->
+            <Border Grid.Column="1"
+                    Background="LightGray"
+                    Margin="5"
+                    CornerRadius="5"
+                    AllowDrop="True"
+                    Drop="DropArea_Drop"
+                    DragOver="DropArea_DragOver">
+                <TextBlock Text="Drop items here or use Ctrl+Space for keyboard overlay"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           Margin="20" />
+            </Border>
+
+            <!-- Keyboard Overlay Control support -->
+            <view:KeyboardOverlayControl Grid.Row="0"
+                                         Grid.Column="1"
+                                         TriggerKey="A">
+                <view:KeyboardOverlayControl.OverlayContent>
+                    <local:OverlayContentControl />
+                </view:KeyboardOverlayControl.OverlayContent>
+            </view:KeyboardOverlayControl>
+
+            <!-- Keyboard Overlay Control with drag support -->
+            <view:DragOverlayControl Grid.Row="0"
+                                     Grid.Column="1"
+                                     TriggerKey="D">
+                <view:DragOverlayControl.OverlayContent>
+                    <local:DragOverlayContentControl />
+                </view:DragOverlayControl.OverlayContent>
+            </view:DragOverlayControl>
+        </Grid>
     </Grid>
 </Window>

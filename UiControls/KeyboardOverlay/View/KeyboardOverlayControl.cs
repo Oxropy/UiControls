@@ -74,9 +74,9 @@ namespace UiControls.KeyboardOverlay.View
             if (TriggerKey == Key.None)
                 return;
 
-            if (e.StagingItem.Input is not KeyEventArgs keyArgs) 
+            if (e.StagingItem.Input is not KeyEventArgs keyArgs)
                 return;
-            
+
             bool correctKey = keyArgs.Key == TriggerKey;
             bool correctModifiers = Keyboard.Modifiers == RequiredModifiers;
 
@@ -94,7 +94,7 @@ namespace UiControls.KeyboardOverlay.View
                     HideOverlay();
                 }
             }
-            
+
             // Handle modifier key changes while trigger key is pressed
             if (_isKeyPressed && !correctModifiers)
             {
@@ -106,7 +106,6 @@ namespace UiControls.KeyboardOverlay.View
                     HideOverlay();
                 }
             }
-
         }
 
         private static void OnOverlayVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -131,7 +130,7 @@ namespace UiControls.KeyboardOverlay.View
 
             // Clear existing children
             Children.Clear();
-            
+
             // Reset positioning properties on the overlay content before adding it
             SetLeft(OverlayContent, 0);
             SetTop(OverlayContent, 0);
@@ -142,7 +141,7 @@ namespace UiControls.KeyboardOverlay.View
             // Make overlay visible and interactive
             Visibility = Visibility.Visible;
             IsHitTestVisible = true;
-            
+
             // Force layout update to ensure proper sizing
             UpdateLayout();
 
@@ -167,7 +166,7 @@ namespace UiControls.KeyboardOverlay.View
                 SetLeft(OverlayContent, 0);
                 SetTop(OverlayContent, 0);
             }
-            
+
             // Restore background hit testing
             RestoreBackgroundHitTesting();
 
@@ -184,23 +183,23 @@ namespace UiControls.KeyboardOverlay.View
                 return;
 
             // Force measure if needed
-            if (OverlayContent.DesiredSize.IsEmpty || 
+            if (OverlayContent.DesiredSize.IsEmpty ||
                 OverlayContent.DesiredSize is { Width: 0, Height: 0 })
             {
                 OverlayContent.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             }
-            
+
             // Use the larger of DesiredSize or RenderSize for more accurate positioning
             Size contentSize = OverlayContent.DesiredSize;
             if (OverlayContent.RenderSize is { Width: > 0, Height: > 0 })
             {
                 contentSize = OverlayContent.RenderSize;
             }
-            
+
             // Center the content on the canvas
             double left = (ActualWidth - contentSize.Width) / 2;
             double top = (ActualHeight - contentSize.Height) / 2;
-            
+
             SetLeft(OverlayContent, Math.Max(0, left));
             SetTop(OverlayContent, Math.Max(0, top));
         }
@@ -213,6 +212,7 @@ namespace UiControls.KeyboardOverlay.View
             FrameworkElement? parent = FindParentContainer();
             if (parent != null)
             {
+                // During drag operations, be much more conservative about disabling hit testing
                 DisableHitTestingRecursively(parent, this);
             }
         }
@@ -228,6 +228,7 @@ namespace UiControls.KeyboardOverlay.View
                     return current as FrameworkElement;
                 }
             }
+
             return null;
         }
 
@@ -256,6 +257,7 @@ namespace UiControls.KeyboardOverlay.View
             {
                 kvp.Key.IsHitTestVisible = kvp.Value;
             }
+
             _originalHitTestValues.Clear();
         }
 
